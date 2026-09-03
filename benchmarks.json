@@ -1,498 +1,1733 @@
 {
   "updated": "2026-09-03",
-  "score_note": "decided_win_rate is wins / (wins + losses); row_win_rate is wins / n. Ties are always reported separately.",
+  "schema_version": 2,
+  "privacy": "Raw customer prompts, answers, secrets, organization identifiers, and large logs are excluded.",
+  "score_note": "decided_win_rate = wins/(wins+losses); row_win_rate = wins/n; ties and failures remain explicit.",
+  "status_definitions": {
+    "canonical": "Current headline evidence for its stated scope.",
+    "adopted": "A design choice accepted from the evidence.",
+    "rejected": "A completed arm not selected.",
+    "superseded": "Historically valid but replaced by newer evidence.",
+    "invalid": "Not interpretable because of a measurement or implementation defect.",
+    "diagnostic": "Completed evidence useful for mechanism or a bounded scope, not a headline.",
+    "incomplete": "Started but not completed on a scoreable sample.",
+    "blocked": "Planned but could not run."
+  },
   "benchmarks": [
     {
-      "id": "production-2000",
-      "description": "Stratified production traffic across sourcedAnswer, searchResults, and structured outputs.",
-      "date": "2026-09-01",
+      "id": "vendor-replay-400",
+      "title": "Vendor replay on production traffic",
+      "type": "vendor_probe",
+      "status": "diagnostic",
+      "date": "2026-08-17",
       "sample": {
-        "n": 2000,
-        "source": "8,500 non-empty production Deep requests",
-        "mix": {
-          "sourcedAnswer": 687,
-          "searchResults": 857,
-          "structured": 456
-        },
-        "method": "Deterministic stratified sample, seed 2000"
+        "n": 400,
+        "population": "Two high-volume production cohorts; prompts excluded from archive"
       },
-      "arms": {
-        "crunch": "gemini-3.7-flash over Columbus Toolbox",
-        "comparator": "Frozen Linkup Deep production replay"
-      },
-      "methodology": {
-        "judge": "gpt-5.6-luna",
-        "design": "Blind typed-output pairwise judge; deterministic randomized order; ties allowed",
-        "answer_clip": 5000,
-        "results_cap": 0,
-        "swap_checks_per_mode": 60
-      },
-      "scores": [
-        {
-          "mode": "sourcedAnswer",
-          "n": 687,
-          "wins": 578,
-          "losses": 108,
-          "ties": 1,
-          "decided_win_rate": 0.8426,
-          "ci95": [0.8051, 0.88]
+      "arms": [
+        "Linkup Deep",
+        "Linkup Standard",
+        "Exa variants",
+        "Parallel Core"
+      ],
+      "method": "Same anonymized request IDs; checklist judge on 400 Flash rows and 398 Sonnet rows.",
+      "scores": {
+        "flash_pass": {
+          "exa_reasoning": 0.82,
+          "exa_agent": 0.798,
+          "exa_lite": 0.792,
+          "parallel_core": 0.616,
+          "deep": 0.352
         },
-        {
-          "mode": "searchResults",
-          "n": 857,
-          "wins": 622,
-          "losses": 233,
-          "ties": 2,
-          "decided_win_rate": 0.7275,
-          "ci95": [0.694, 0.761]
-        },
-        {
-          "mode": "structured_shipping",
-          "n": 456,
-          "wins": 221,
-          "losses": 219,
-          "ties": 16,
-          "decided_win_rate": 0.5023
-        },
-        {
-          "mode": "structured_projector_rescore",
-          "n": 319,
-          "wins": 215,
-          "losses": 93,
-          "ties": 11,
-          "decided_win_rate": 0.6981,
-          "ci95": [0.6468, 0.7493]
+        "sonnet_pass": {
+          "exa_agent": 0.726,
+          "parallel_core": 0.72,
+          "exa_reasoning": 0.705,
+          "deep": 0.452
         }
+      },
+      "decision": "Motivated owning the search loop; vendor results are supporting evidence, not Crunch claims.",
+      "limitations": [
+        "Traffic mix was concentrated; this predates Crunch and the initial judge clipped answers."
       ],
-      "caveats": [
-        "The structured projector score is a selected 319-row re-projection, not a fresh full run.",
-        "The frozen Deep replay dropped request date and domain filters."
-      ],
+      "supersedes": [],
       "sources": [
-        "crunch-public/evals/bench-2000-20260901/RESULTS.md",
-        "crunch-public/evals/RESULTS.md",
-        "crunch-public/evals/MANIFEST.json"
+        "Deep-eval:docs/experiment.md"
       ]
     },
     {
-      "id": "filtered-production-200",
-      "description": "Quality and filter compliance on production requests with domain or date constraints.",
-      "date": "2026-09-03",
+      "id": "parallel-core2x-400",
+      "title": "Parallel Core2x replay",
+      "type": "vendor_probe",
+      "status": "incomplete",
+      "date": "2026-08-17",
       "sample": {
-        "n": 200,
-        "source": "405,462 filtered production Deep requests from the prior 30 days",
-        "method": "Deterministic sample stratified across 11 filter combinations"
+        "target_n": 400,
+        "completed": 61,
+        "payment_errors": 338
       },
-      "arms": {
-        "crunch": "Vespa-only Crunch with immutable filters and defensive URL filtering",
-        "comparator": "Live Linkup Deep with the same filters"
-      },
-      "methodology": {
-        "judge": "gpt-5.6-luna",
-        "design": "Blind typed-output pairwise judge with request filters visible",
-        "swap_checks": 60,
-        "compliance": "Programmatic include/exclude-domain audit"
-      },
+      "arms": [
+        "Parallel Core2x"
+      ],
+      "method": "Production replay; stopped after repeated payment-required responses.",
       "scores": {
-        "quality": {
-          "wins": 67,
-          "losses": 32,
-          "ties": 101,
-          "decided_win_rate": 0.6768
-        },
-        "by_mode": {
-          "sourcedAnswer": [61, 9, 40],
-          "searchResults": [6, 20, 49],
-          "structured": [0, 3, 12]
-        },
-        "domain_violations": {
-          "crunch": 0,
-          "comparator": 33
-        },
-        "successful_requests": {
-          "crunch": 192,
-          "comparator": 200
-        }
+        "ok": 61,
+        "http_402": 338
       },
-      "caveats": [
-        "Date compliance could not be audited end-to-end because result documents omit last_modified.",
-        "Crunch lost the searchResults slice and had eight empty-result failures."
+      "decision": "Do not use as a quality result.",
+      "limitations": [
+        "Incomplete and non-random survivor set."
+      ],
+      "supersedes": [],
+      "sources": [
+        "Deep-eval:docs/experiment.md"
+      ]
+    },
+    {
+      "id": "vendor-fast-variants",
+      "title": "Parallel fast variants",
+      "type": "vendor_probe",
+      "status": "blocked",
+      "date": "2026-08-17",
+      "sample": {
+        "target_n": 400
+      },
+      "arms": [
+        "Parallel Core Fast",
+        "Parallel Core2x Fast"
+      ],
+      "method": "Planned production replay.",
+      "scores": {},
+      "decision": "Not run; archive as blocked.",
+      "limitations": [
+        "Blocked by provider credits."
+      ],
+      "supersedes": [],
+      "sources": [
+        "Deep-eval:docs/experiment.md"
+      ]
+    },
+    {
+      "id": "planner-diverse-100",
+      "title": "Planner first-hop diverse bench",
+      "type": "planner",
+      "status": "diagnostic",
+      "date": "2026-08-18",
+      "sample": {
+        "n": 100,
+        "comparable_n": 98,
+        "source": "90-organization robustness sample"
+      },
+      "arms": [
+        "gpt-4.1-mini",
+        "gpt-5.6-luna",
+        "DeepSeek V4 Flash"
+      ],
+      "method": "Offline first-hop tool-choice comparison without retrieval.",
+      "scores": {
+        "avg_tool_calls": [
+          1.78,
+          1.92,
+          1.7
+        ],
+        "malformed_site_dorks": [
+          22,
+          17,
+          0
+        ]
+      },
+      "decision": "Prompt defaults, not only model choice, needed repair; superseded the narrow n=20 planner impression.",
+      "limitations": [
+        "Org-weighted robustness sample, not traffic weighted."
+      ],
+      "supersedes": [],
+      "sources": [
+        "Deep-eval:docs/experiment.md"
+      ]
+    },
+    {
+      "id": "model-bakeoff-20",
+      "title": "Initial loop-model bake-off",
+      "type": "model_selection",
+      "status": "adopted",
+      "date": "2026-08-19",
+      "sample": {
+        "n": 20,
+        "seed": 17
+      },
+      "arms": [
+        "Gemini 3.7 Flash",
+        "GPT-4.1 mini",
+        "GPT-5.6 Luna",
+        "four slower models"
+      ],
+      "method": "Sequential same-question model bake-off; two checklist judges.",
+      "scores": {
+        "gemini_flash_p50_s": 6.341,
+        "gemini_flash_p90_s": 9.03,
+        "gemini_flash_cost": 0.0187
+      },
+      "decision": "Use gemini-3.7-flash with no deadline; Luna remains latency-relaxed runner-up.",
+      "limitations": [
+        "n=20 could not reliably rank close quality arms."
+      ],
+      "supersedes": [],
+      "sources": [
+        "Deep-eval:STATUS.md",
+        "Deep-eval:docs/index-agent.md"
+      ]
+    },
+    {
+      "id": "model-hunt-25",
+      "title": "Expanded shipped-config model hunt",
+      "type": "model_selection",
+      "status": "adopted",
+      "date": "2026-09-02",
+      "sample": {
+        "n": 25
+      },
+      "arms": [
+        "Gemini 3.7 Flash",
+        "Luna",
+        "Gemini Flash Lite variants",
+        "Qwen",
+        "OSS-120B",
+        "other open models"
+      ],
+      "method": "Same 25 questions and shipped Crunch config; checklist comparisons within judge pass.",
+      "scores": {
+        "baseline_pass": 0.879,
+        "luna_pass": 0.873,
+        "gemini_35_lite_pass": 0.692,
+        "qwen_pass": 0.768,
+        "baseline_p50_s": 9.4,
+        "baseline_cost_per_1000": 14.71
+      },
+      "decision": "Keep gemini-3.7-flash: no measured arm was cheaper, faster, and better.",
+      "limitations": [
+        "Some slow arms were unjudged; Qwen could not honor required first-hop tools."
+      ],
+      "supersedes": [
+        "model-bakeoff-20"
       ],
       "sources": [
-        "crunch-public/evals/filtered-200-20260903/RESULTS.md",
-        "crunch-public/evals/filtered-200-20260903/summary.json"
+        "Deep-eval:docs/model-hunt.md"
+      ]
+    },
+    {
+      "id": "native-cheap-models",
+      "title": "Native-provider cheap-model follow-up",
+      "type": "model_selection",
+      "status": "blocked",
+      "date": "2026-09-02",
+      "sample": {
+        "target_n": 25
+      },
+      "arms": [
+        "Qwen 3.7 Flash native",
+        "OSS-120B native"
+      ],
+      "method": "Proposed parity replay.",
+      "scores": {},
+      "decision": "Leave as an optional offline-tier question.",
+      "limitations": [
+        "Native APIs were not run; routing gain cannot close the observed 5x latency gap by itself."
+      ],
+      "supersedes": [],
+      "sources": [
+        "Deep-eval:docs/model-hunt.md"
+      ]
+    },
+    {
+      "id": "hard-bench-20",
+      "title": "Hard multi-hop benchmark",
+      "type": "benchmark",
+      "status": "canonical",
+      "date": "2026-08-19",
+      "sample": {
+        "n": 20,
+        "completed_n": 17,
+        "mix": "chains, matrices, numeric, temporal, traps"
+      },
+      "arms": [
+        "Crunch",
+        "Exa Deep Reasoning",
+        "Linkup Deep"
+      ],
+      "method": "Fixed atomic criteria; independent Gemini and Fable judges.",
+      "scores": {
+        "gemini": {
+          "crunch": 0.863,
+          "exa": 0.86,
+          "deep": 0.653
+        },
+        "fable": {
+          "crunch": 0.824,
+          "exa": 0.882,
+          "deep": 0.686
+        },
+        "crunch_vs_exa_delta": -0.028,
+        "ci95": 0.151
+      },
+      "decision": "Treat Crunch and Exa as tied; matrix questions remain Crunch's clearest gap.",
+      "limitations": [
+        "Three Crunch rows had network failures in the later fixed-write comparison; n is small."
+      ],
+      "supersedes": [],
+      "sources": [
+        "crunch-public:BENCHMARKS.md",
+        "Deep-eval:docs/hard-bench.md"
+      ]
+    },
+    {
+      "id": "prod100-initial",
+      "title": "Initial production-100 checklist run",
+      "type": "benchmark",
+      "status": "invalid",
+      "date": "2026-08-19",
+      "sample": {
+        "n": 100
+      },
+      "arms": [
+        "Crunch",
+        "Exa",
+        "Linkup Deep"
+      ],
+      "method": "Checklist judge with unresolved citation IDs and a 1,400-character answer clip.",
+      "scores": {
+        "crunch_pass": 0.577,
+        "exa_pass": 0.781,
+        "deep_pass": 0.572
+      },
+      "decision": "Retain only as evidence that led to harness repairs.",
+      "limitations": [
+        "Citation IDs did not resolve; clipping was asymmetric."
+      ],
+      "supersedes": [],
+      "sources": [
+        "Deep-eval:STATUS.md"
+      ]
+    },
+    {
+      "id": "citation-renumber-rescore",
+      "title": "Citation renumbering rescore",
+      "type": "reliability",
+      "status": "adopted",
+      "date": "2026-08-21",
+      "sample": {
+        "n": 100
+      },
+      "arms": [
+        "Broken emitted IDs",
+        "Renumbered emitted IDs"
+      ],
+      "method": "Regraded identical stored answers.",
+      "scores": {
+        "before": 0.571,
+        "after": 0.748,
+        "delta": 0.179,
+        "better": 30,
+        "worse": 0
+      },
+      "decision": "Renumber citations after selecting emitted sources.",
+      "limitations": [
+        "Measures a plumbing repair, not a model improvement."
+      ],
+      "supersedes": [],
+      "sources": [
+        "Deep-eval:STATUS.md"
+      ]
+    },
+    {
+      "id": "judge-clip-1400",
+      "title": "Checklist judge answer-clip audit",
+      "type": "measurement",
+      "status": "invalid",
+      "date": "2026-08-21",
+      "sample": {
+        "n": 100
+      },
+      "arms": [
+        "1,400-character clip",
+        "16,000-character clip"
+      ],
+      "method": "Regraded identical answers.",
+      "scores": {
+        "crunch_v7_delta": 0.094,
+        "exa_delta": 0.096,
+        "deep_delta": 0.0
+      },
+      "decision": "Invalidate pre-21-Aug cross-system magnitudes and remove asymmetric clipping.",
+      "limitations": [
+        "Rankings mostly survived, but deltas did not."
+      ],
+      "supersedes": [],
+      "sources": [
+        "Deep-eval:STATUS.md"
+      ]
+    },
+    {
+      "id": "prompt-v6-v7",
+      "title": "Answer-contract v6/v7",
+      "type": "prompt",
+      "status": "adopted",
+      "date": "2026-08-21",
+      "sample": {
+        "n": 100,
+        "targeted_subset_n": 24
+      },
+      "arms": [
+        "v3",
+        "v6",
+        "v7"
+      ],
+      "method": "Paired checklist scoring and behavior inspection.",
+      "scores": {
+        "v3_to_v7": 0.012,
+        "ci95": 0.041,
+        "missing_subset": {
+          "v3": 0.258,
+          "v6": 0.192,
+          "v7": 0.167
+        }
+      },
+      "decision": "Adopt v7 for mechanism and reduced omissions, not as a proven pass-rate win.",
+      "limitations": [
+        "Small effects sit inside judge variance."
+      ],
+      "supersedes": [],
+      "sources": [
+        "Deep-eval:STATUS.md"
+      ]
+    },
+    {
+      "id": "synthesis-writers-24",
+      "title": "Separate synthesis writers",
+      "type": "architecture",
+      "status": "rejected",
+      "date": "2026-08-21",
+      "sample": {
+        "n": 24
+      },
+      "arms": [
+        "Loop writer",
+        "Gemini Pro writer",
+        "Claude Sonnet writer"
+      ],
+      "method": "Same evidence, separate writer model.",
+      "scores": {
+        "loop_pass": 0.746,
+        "gemini_pro_pass": 0.75,
+        "sonnet_pass": 0.654,
+        "gemini_cost_multiple": 4.8,
+        "sonnet_cost_multiple": 16
+      },
+      "decision": "Keep one model for loop and writing; improve the contract instead.",
+      "limitations": [
+        "Targeted subset; cost deltas are decisive despite sample size."
+      ],
+      "supersedes": [],
+      "sources": [
+        "Deep-eval:STATUS.md"
+      ]
+    },
+    {
+      "id": "coverage-pass-100",
+      "title": "Post-loop coverage pass",
+      "type": "architecture",
+      "status": "adopted",
+      "date": "2026-08-21",
+      "sample": {
+        "n": 100
+      },
+      "arms": [
+        "v7",
+        "v7 plus coverage"
+      ],
+      "method": "Paired checklist judge with traffic-type split.",
+      "scores": {
+        "pass_delta": 0.019,
+        "ci95": 0.029,
+        "lookup_delta": 0.0,
+        "missing_before": 0.045,
+        "missing_after": 0.033
+      },
+      "decision": "Keep for honest omission reduction; do not claim its task-prompt headline as quality gain.",
+      "limitations": [
+        "Agentic-task gain partly rewarded citation laundering."
+      ],
+      "supersedes": [],
+      "sources": [
+        "Deep-eval:STATUS.md"
+      ]
+    },
+    {
+      "id": "scrape-top-100",
+      "title": "Forced top-page scraping",
+      "type": "fetching",
+      "status": "rejected",
+      "date": "2026-08-21",
+      "sample": {
+        "n": 100
+      },
+      "arms": [
+        "scrape_top=3",
+        "scrape_top=0"
+      ],
+      "method": "Same questions and checklist pass.",
+      "scores": {
+        "pass_with": 0.9295,
+        "pass_without": 0.9403,
+        "p50_with_s": 30.5,
+        "p50_without_s": 9.5
+      },
+      "decision": "Disable automatic top-page scraping.",
+      "limitations": [
+        "No-scrape config still allows model-selected fetches."
+      ],
+      "supersedes": [
+        "scrape-top-20"
+      ],
+      "sources": [
+        "Deep-eval:STATUS.md"
+      ]
+    },
+    {
+      "id": "scrape-top-20",
+      "title": "Forced scrape hand-read pilot",
+      "type": "fetching",
+      "status": "superseded",
+      "date": "2026-08-20",
+      "sample": {
+        "n": 20
+      },
+      "arms": [
+        "Toolbox snippets",
+        "Five scrapes per hop"
+      ],
+      "method": "Human paired read.",
+      "scores": {
+        "better": 8,
+        "worse": 1,
+        "same": 11,
+        "p50_before_s": 6.35,
+        "p50_after_s": 31.515
+      },
+      "decision": "Initially promising but superseded by the powered n=100 rejection.",
+      "limitations": [
+        "No judge; older prompt and wider result set."
+      ],
+      "supersedes": [],
+      "sources": [
+        "Deep-eval:STATUS.md"
+      ]
+    },
+    {
+      "id": "fetch-rule-100",
+      "title": "Prompt-and-tool fetch encouragement",
+      "type": "fetching",
+      "status": "diagnostic",
+      "date": "2026-08-21",
+      "sample": {
+        "production_n": 100,
+        "hard_n": 20
+      },
+      "arms": [
+        "tease",
+        "read"
+      ],
+      "method": "Changed both system prompt and tool description; paired scoring.",
+      "scores": {
+        "production_delta": -0.008,
+        "production_ci95": 0.024,
+        "hard_delta": 0.043,
+        "hard_ci95": 0.084
+      },
+      "decision": "Keep conservative default for production; use read behavior only for analytical work.",
+      "limitations": [
+        "Fetch frequency remained low; hard set was small."
+      ],
+      "supersedes": [],
+      "sources": [
+        "Deep-eval:STATUS.md"
+      ]
+    },
+    {
+      "id": "autoread-ranking-103",
+      "title": "Deterministic page auto-read ranking",
+      "type": "fetching",
+      "status": "rejected",
+      "date": "2026-08-20",
+      "sample": {
+        "n": 103,
+        "replicate_runs": 2
+      },
+      "arms": [
+        "Index order",
+        "Intent-ranked order"
+      ],
+      "method": "Two replicates per arm and three judge passes.",
+      "scores": {
+        "delta": -0.011,
+        "ci95": 0.044,
+        "blog_section_share_before": 0.33,
+        "after": 0.15
+      },
+      "decision": "Leave index order as default; mechanism changed pages but not measured quality.",
+      "limitations": [
+        "Ranking cannot recover an absent URL."
+      ],
+      "supersedes": [],
+      "sources": [
+        "Deep-eval:STATUS.md"
+      ]
+    },
+    {
+      "id": "host-fetch-guard",
+      "title": "Host-level fetch guard",
+      "type": "reliability",
+      "status": "adopted",
+      "date": "2026-08-20",
+      "sample": {
+        "runs": 2,
+        "novel_path_fetches": 15
+      },
+      "arms": [
+        "Exact URL guard",
+        "Seen-host guard"
+      ],
+      "method": "Operational replay and hand inspection.",
+      "scores": {
+        "text_returned": 14,
+        "cited": 14,
+        "quality_delta": -0.01,
+        "ci95": 0.049
+      },
+      "decision": "Permit inferred paths only on previously seen hosts.",
+      "limitations": [
+        "Too rare for a pass-rate claim; can permit occasional crawling."
+      ],
+      "supersedes": [],
+      "sources": [
+        "Deep-eval:STATUS.md"
+      ]
+    },
+    {
+      "id": "domain-scope-108",
+      "title": "Hard domain filter versus broad hint",
+      "type": "filters",
+      "status": "adopted",
+      "date": "2026-08-20",
+      "sample": {
+        "asker_dork_n": 52,
+        "metadata_domain_n": 56
+      },
+      "arms": [
+        "Hard includeDomains",
+        "Broad host hint"
+      ],
+      "method": "Paired runs, repeated checklist grades.",
+      "scores": {
+        "asker_dork_delta": 0.132,
+        "ci95": [
+          0.04,
+          0.227
+        ],
+        "metadata_delta": 0.033
+      },
+      "decision": "Keep explicit user domain constraints hard.",
+      "limitations": [
+        "Initial subset parser falsely matched the word 'Website:' and was corrected."
+      ],
+      "supersedes": [],
+      "sources": [
+        "Deep-eval:STATUS.md"
+      ]
+    },
+    {
+      "id": "brave-second-index-100",
+      "title": "Brave as second retrieval index",
+      "type": "retrieval",
+      "status": "rejected",
+      "date": "2026-08-20",
+      "sample": {
+        "n": 100,
+        "treated_n": 55
+      },
+      "arms": [
+        "Toolbox only",
+        "Toolbox plus Brave"
+      ],
+      "method": "Difference-in-differences using untreated rows as control.",
+      "scores": {
+        "treated_delta": -0.078,
+        "control_delta": -0.036,
+        "difference_in_differences": -0.042,
+        "ci95": 0.058
+      },
+      "decision": "Do not add retrieval breadth when the evidence-read budget is the bottleneck.",
+      "limitations": [
+        "Run-to-run noise was as large as candidate effects."
+      ],
+      "supersedes": [],
+      "sources": [
+        "Deep-eval:STATUS.md"
+      ]
+    },
+    {
+      "id": "toolbox-caps-25",
+      "title": "Toolbox result and page caps",
+      "type": "reliability",
+      "status": "adopted",
+      "date": "2026-08-21",
+      "sample": {
+        "n": 25
+      },
+      "arms": [
+        "20 hits and uncapped pages",
+        "10 hits and 12k-character pages"
+      ],
+      "method": "Paired operational and checklist comparison.",
+      "scores": {
+        "answered_before": "16/25",
+        "answered_after": "24/24",
+        "quality_delta": 0.015,
+        "ci95": 0.086
+      },
+      "decision": "Cap results at 10 and fetched page text at 12k.",
+      "limitations": [
+        "Small sample; quality result is a null."
+      ],
+      "supersedes": [],
+      "sources": [
+        "Deep-eval:STATUS.md"
+      ]
+    },
+    {
+      "id": "prod100-corrected",
+      "title": "Corrected production-100 checklist benchmark",
+      "type": "benchmark",
+      "status": "canonical",
+      "date": "2026-08-21",
+      "sample": {
+        "n": 100
+      },
+      "arms": [
+        "Crunch v7",
+        "Exa Deep Reasoning",
+        "Linkup Deep"
+      ],
+      "method": "One checklist pass after citation, clipping, prompt, coverage, and scraper fixes.",
+      "scores": {
+        "pass": {
+          "crunch": 0.9403,
+          "exa": 0.894,
+          "deep": 0.61
+        },
+        "unsourced": {
+          "crunch": 0.028,
+          "exa": 0.076,
+          "deep": 0.115
+        },
+        "crunch_p50_s": 9.5,
+        "crunch_p90_s": 14.3,
+        "model_cost_per_1000": 14.71
+      },
+      "decision": "Canonical internal-harness configuration; quality is tied with Exa on ordinary lookups.",
+      "limitations": [
+        "Overall lead leans on agentic prompts; internal harness, not public crunch.py."
+      ],
+      "supersedes": [
+        "prod100-initial"
+      ],
+      "sources": [
+        "crunch-public:BENCHMARKS.md",
+        "Deep-eval:CRUNCH.md"
+      ]
+    },
+    {
+      "id": "deepsearchqa-896",
+      "title": "DeepSearchQA paired benchmark",
+      "type": "benchmark",
+      "status": "canonical",
+      "date": "2026-08-24",
+      "sample": {
+        "n": 896
+      },
+      "arms": [
+        "Crunch",
+        "Production Deep"
+      ],
+      "method": "Official-style all-correct autorater on identical questions.",
+      "scores": {
+        "crunch": 0.362,
+        "deep": 0.084,
+        "paired_delta": 0.278,
+        "ci95": 0.034,
+        "better": 277,
+        "worse": 28,
+        "tie": 591
+      },
+      "decision": "Use as evidence on exhaustive multi-step questions.",
+      "limitations": [
+        "Replacement Gemini autorater prevents public leaderboard comparison."
+      ],
+      "supersedes": [],
+      "sources": [
+        "crunch-public:BENCHMARKS.md"
+      ]
+    },
+    {
+      "id": "production-1000-legacy",
+      "title": "Production traffic paired benchmark",
+      "type": "benchmark",
+      "status": "superseded",
+      "date": "2026-08-24",
+      "sample": {
+        "n": 1000,
+        "comparable_n": 615
+      },
+      "arms": [
+        "Crunch",
+        "Production Deep"
+      ],
+      "method": "Blind pairwise with 60 order swaps.",
+      "scores": {
+        "wins": 512,
+        "losses": 96,
+        "decided_win_rate": 0.842,
+        "crunch_p50_s": 9.3,
+        "deep_p50_s": 10.1
+      },
+      "decision": "Historical production result; use the stratified 2,000-row run for current claims.",
+      "limitations": [
+        "385 filtered rows excluded; older implementation."
+      ],
+      "supersedes": [],
+      "sources": [
+        "crunch-public:BENCHMARKS.md"
+      ]
+    },
+    {
+      "id": "structured-projection-50",
+      "title": "Question-aware schema projection",
+      "type": "structured",
+      "status": "adopted",
+      "date": "2026-08-24",
+      "sample": {
+        "n": 50
+      },
+      "arms": [
+        "Old projector",
+        "Question-aware validated projector",
+        "Prose ceiling"
+      ],
+      "method": "Reprojected identical stored prose; one schema-validation retry.",
+      "scores": {
+        "strict_old": 0.6,
+        "strict_new": 0.62,
+        "strict_prose": 0.62,
+        "recall_new": 0.717
+      },
+      "decision": "Include the question and validate output; projection should preserve prose quality.",
+      "limitations": [
+        "DSQA explanation field reduced sensitivity."
+      ],
+      "supersedes": [],
+      "sources": [
+        "Deep-eval:results/output_modes/README.md"
+      ]
+    },
+    {
+      "id": "search-rank-rff-50",
+      "title": "Reciprocal-rank fusion for searchResults",
+      "type": "search_results",
+      "status": "superseded",
+      "date": "2026-08-24",
+      "sample": {
+        "n": 50
+      },
+      "arms": [
+        "Arrival order",
+        "Reciprocal-rank fusion"
+      ],
+      "method": "Gold-answer recall at fixed cuts.",
+      "scores": {
+        "top10_arrival": 0.355,
+        "top10_rrf": 0.521,
+        "delta": 0.166
+      },
+      "decision": "Replace concatenation with a real ranking; later superseded by model ranking.",
+      "limitations": [
+        "Only 50 DSQA rows; no exposed comparable cross-query score."
+      ],
+      "supersedes": [],
+      "sources": [
+        "Deep-eval:results/output_modes/README.md"
+      ]
+    },
+    {
+      "id": "search-rank-score-100",
+      "title": "Cross-encoder score ordering",
+      "type": "search_results",
+      "status": "superseded",
+      "date": "2026-08-24",
+      "sample": {
+        "n": 100
+      },
+      "arms": [
+        "Arrival",
+        "RRF",
+        "Raw score"
+      ],
+      "method": "Paired gold-answer recall.",
+      "scores": {
+        "top10": {
+          "arrival": 0.33,
+          "rrf": 0.517,
+          "score": 0.566
+        }
+      },
+      "decision": "Evidence that arrival order was wrong; raw score was later found incomparable across rewritten queries.",
+      "limitations": [
+        "Recall against gold answer is not user quality."
+      ],
+      "supersedes": [
+        "search-rank-rff-50"
+      ],
+      "sources": [
+        "crunch-public:OUTPUT-MODES.md"
+      ]
+    },
+    {
+      "id": "search-head-to-head-97",
+      "title": "Ranked-document head-to-head",
+      "type": "search_results",
+      "status": "diagnostic",
+      "date": "2026-08-24",
+      "sample": {
+        "decisions_n": 97
+      },
+      "arms": [
+        "Crunch ranked top 10",
+        "Deep top 10"
+      ],
+      "method": "Fixed synthesizer then pairwise judge with swaps.",
+      "scores": {
+        "crunch": 53,
+        "deep": 40,
+        "ties": 4,
+        "swap_flip_rate": 0.23
+      },
+      "decision": "Treat as tie; ranking mechanism required a production typed-output judge.",
+      "limitations": [
+        "Swap instability exceeded margin."
+      ],
+      "supersedes": [],
+      "sources": [
+        "crunch-public:OUTPUT-MODES.md"
+      ]
+    },
+    {
+      "id": "chain-prompt-10",
+      "title": "Explicit chain instruction A/B",
+      "type": "prompt",
+      "status": "rejected",
+      "date": "2026-08-25",
+      "sample": {
+        "n": 10
+      },
+      "arms": [
+        "Stock prompt",
+        "Sequential-chain bullet"
+      ],
+      "method": "Alternating paired runs, blind fixed checks.",
+      "scores": {
+        "stock_pass": "10/10",
+        "chain_pass": "10/10",
+        "better": 0,
+        "worse": 0,
+        "tie": 10
+      },
+      "decision": "Preserve guess-and-verify; do not spend a turn sequencing guessable entities.",
+      "limitations": [
+        "Small, model-guessable set; unknown intermediates remain untested."
+      ],
+      "supersedes": [],
+      "sources": [
+        "crunch-public:behaviours.md"
+      ]
+    },
+    {
+      "id": "production-850-clip1800",
+      "title": "850-row prose judge with 1,800-character clip",
+      "type": "measurement",
+      "status": "invalid",
+      "date": "2026-09-01",
+      "sample": {
+        "n": 292,
+        "mode": "sourcedAnswer"
+      },
+      "arms": [
+        "Crunch",
+        "Frozen Deep"
+      ],
+      "method": "Blind pairwise with asymmetric clipping.",
+      "scores": {
+        "reported_win_rate": 0.613,
+        "corrected_win_rate": 0.8419
+      },
+      "decision": "Invalidate the 61% number; raise clip to 5,000 or do not truncate.",
+      "limitations": [
+        "75% of Crunch versus 20% of Deep was clipped."
+      ],
+      "supersedes": [],
+      "sources": [
+        "crunch-public:evals/RESULTS.md"
+      ]
+    },
+    {
+      "id": "search-max-score-364",
+      "title": "Cross-query max-score search ranking",
+      "type": "search_results",
+      "status": "invalid",
+      "date": "2026-09-01",
+      "sample": {
+        "n": 364
+      },
+      "arms": [
+        "Max raw cross-encoder score"
+      ],
+      "method": "Production 850 pilot.",
+      "scores": {
+        "reported_win_rate": 0.452
+      },
+      "decision": "Do not compare raw reranker scores across rewritten queries.",
+      "limitations": [
+        "Narrow rewrites dominated due to score-scale mismatch."
+      ],
+      "supersedes": [],
+      "sources": [
+        "crunch-public:evals/RESULTS.md"
+      ]
+    },
+    {
+      "id": "search-model-rerank-364",
+      "title": "Model-ranked searchResults",
+      "type": "search_results",
+      "status": "adopted",
+      "date": "2026-09-01",
+      "sample": {
+        "n": 364
+      },
+      "arms": [
+        "Model reranking",
+        "Frozen Deep"
+      ],
+      "method": "Typed pairwise judge on same 850 pilot.",
+      "scores": {
+        "wins": 277,
+        "losses": 87,
+        "ties": 0,
+        "decided_win_rate": 0.761
+      },
+      "decision": "Use the model to choose across sub-query result lists.",
+      "limitations": [
+        "Pilot slice; canonical score comes from n=857."
+      ],
+      "supersedes": [
+        "search-rank-rff-50",
+        "search-rank-score-100",
+        "search-max-score-364"
+      ],
+      "sources": [
+        "crunch-public:evals/RESULTS.md"
+      ]
+    },
+    {
+      "id": "search-split-finish-200",
+      "title": "SearchResults done-call finish",
+      "type": "architecture",
+      "status": "adopted",
+      "date": "2026-09-01",
+      "sample": {
+        "n": 200
+      },
+      "arms": [
+        "Write then discard prose",
+        "Done call"
+      ],
+      "method": "Sign test on paired outputs.",
+      "scores": {
+        "wins": 152,
+        "losses": 48,
+        "decided_win_rate": 0.76,
+        "quality_p": 0.67,
+        "latency_before_s": 44.1,
+        "latency_after_s": 8.4
+      },
+      "decision": "End searchResults with a done call instead of writing discarded prose.",
+      "limitations": [
+        "A harness initially marked answerless success rows failed."
+      ],
+      "supersedes": [],
+      "sources": [
+        "crunch-public:evals/RESULTS.md"
+      ]
+    },
+    {
+      "id": "runner-status-bug",
+      "title": "Answer-derived status in split-finish runs",
+      "type": "measurement",
+      "status": "invalid",
+      "date": "2026-09-01",
+      "sample": {
+        "affected_successes": 845
+      },
+      "arms": [
+        "status from answer text",
+        "status from output contract"
+      ],
+      "method": "Recomputed run status.",
+      "scores": {
+        "reported_success_rate": 0.01,
+        "corrected_quality_win_rate": 0.728
+      },
+      "decision": "Derive success from typed output, not presence of prose.",
+      "limitations": [
+        "Invalidated only operational status, not stored result documents."
+      ],
+      "supersedes": [],
+      "sources": [
+        "crunch-public:evals/RESULTS.md"
+      ]
+    },
+    {
+      "id": "runner-row1520-crash",
+      "title": "Finish-reason-only model response",
+      "type": "reliability",
+      "status": "incomplete",
+      "date": "2026-09-01",
+      "sample": {
+        "target_n": 2000,
+        "stopped_at": 1520
+      },
+      "arms": [
+        "Original runner"
+      ],
+      "method": "Production run interrupted by indexing an absent message.",
+      "scores": {
+        "completed_before_crash": 1520
+      },
+      "decision": "Make each row failure-isolated and resume-safe.",
+      "limitations": [
+        "No complete result; not scoreable."
+      ],
+      "supersedes": [],
+      "sources": [
+        "crunch-public:evals/RESULTS.md"
+      ]
+    },
+    {
+      "id": "production-2000-sourced",
+      "title": "Stratified production sourcedAnswer",
+      "type": "benchmark",
+      "status": "canonical",
+      "date": "2026-09-01",
+      "sample": {
+        "n": 687,
+        "parent_n": 2000
+      },
+      "arms": [
+        "Crunch",
+        "Frozen Linkup Deep"
+      ],
+      "method": "Blind typed pairwise Luna judge; 5,000-character clip; 60 mode swaps.",
+      "scores": {
+        "wins": 578,
+        "losses": 108,
+        "ties": 1,
+        "decided_win_rate": 0.8426,
+        "ci95": [
+          0.8051,
+          0.88
+        ]
+      },
+      "decision": "Canonical sourcedAnswer production result.",
+      "limitations": [
+        "Frozen Deep replay dropped date and domain filters."
+      ],
+      "supersedes": [
+        "production-1000-legacy",
+        "production-850-clip1800"
+      ],
+      "sources": [
+        "crunch-public:evals/bench-2000-20260901/RESULTS.md"
+      ]
+    },
+    {
+      "id": "production-2000-search",
+      "title": "Stratified production searchResults",
+      "type": "benchmark",
+      "status": "canonical",
+      "date": "2026-09-01",
+      "sample": {
+        "n": 857,
+        "parent_n": 2000
+      },
+      "arms": [
+        "Crunch",
+        "Frozen Linkup Deep"
+      ],
+      "method": "Blind typed pairwise Luna judge; complete result lists.",
+      "scores": {
+        "wins": 622,
+        "losses": 233,
+        "ties": 2,
+        "decided_win_rate": 0.7275,
+        "ci95": [
+          0.694,
+          0.761
+        ]
+      },
+      "decision": "Canonical unfiltered searchResults result.",
+      "limitations": [
+        "Frozen replay omitted request filters."
+      ],
+      "supersedes": [
+        "search-model-rerank-364",
+        "search-split-finish-200"
+      ],
+      "sources": [
+        "crunch-public:evals/bench-2000-20260901/RESULTS.md"
+      ]
+    },
+    {
+      "id": "production-2000-structured-shipping",
+      "title": "Shipping structured path",
+      "type": "structured",
+      "status": "superseded",
+      "date": "2026-09-01",
+      "sample": {
+        "n": 456,
+        "parent_n": 2000
+      },
+      "arms": [
+        "Crunch shipping projector",
+        "Frozen Linkup Deep"
+      ],
+      "method": "Blind typed pairwise Luna judge.",
+      "scores": {
+        "wins": 221,
+        "losses": 219,
+        "ties": 16,
+        "decided_win_rate": 0.5023
+      },
+      "decision": "Do not use as current structured quality; it exposed schema coercion defects.",
+      "limitations": [
+        "Organization-specific format failures dominated."
+      ],
+      "supersedes": [],
+      "sources": [
+        "crunch-public:evals/bench-2000-20260901/RESULTS.md"
+      ]
+    },
+    {
+      "id": "structured-projector-rescore-319",
+      "title": "Structured projector repair rescore",
+      "type": "structured",
+      "status": "superseded",
+      "date": "2026-09-02",
+      "sample": {
+        "n": 319,
+        "selection": "all prior Deep wins plus 100 prior Crunch wins"
+      },
+      "arms": [
+        "Reprojected Crunch writes",
+        "Frozen Linkup Deep"
+      ],
+      "method": "Stored writes reprojected with null/coercion/source fixes, then rejudged.",
+      "scores": {
+        "wins": 215,
+        "losses": 93,
+        "ties": 11,
+        "decided_win_rate": 0.6981,
+        "ci95": [
+          0.6468,
+          0.7493
+        ]
+      },
+      "decision": "Adopt projector repairs; use direct-projection confirmation for the newest architecture decision.",
+      "limitations": [
+        "Selected sample; not a fresh 456-row retrieval run."
+      ],
+      "supersedes": [
+        "production-2000-structured-shipping"
+      ],
+      "sources": [
+        "crunch-public:evals/RESULTS.md"
+      ]
+    },
+    {
+      "id": "structured-abstention-194",
+      "title": "Structured abstention",
+      "type": "structured",
+      "status": "rejected",
+      "date": "2026-09-01",
+      "sample": {
+        "n": 194
+      },
+      "arms": [
+        "Higher null rate",
+        "Frozen Deep"
+      ],
+      "method": "Pilot ablation.",
+      "scores": {
+        "decided_win_rate": 0.4286
+      },
+      "decision": "Do not match Deep's null rate mechanically.",
+      "limitations": [
+        "Small pilot; conflates several schemas."
+      ],
+      "supersedes": [],
+      "sources": [
+        "crunch-public:evals/RESULTS.md"
+      ]
+    },
+    {
+      "id": "search-literal-40",
+      "title": "One literal query without loop",
+      "type": "architecture",
+      "status": "rejected",
+      "date": "2026-09-01",
+      "sample": {
+        "n": 40
+      },
+      "arms": [
+        "One query",
+        "Frozen Deep"
+      ],
+      "method": "Pilot ablation.",
+      "scores": {
+        "decided_win_rate": 0.3438
+      },
+      "decision": "Keep the adaptive loop.",
+      "limitations": [
+        "Directional small slice."
+      ],
+      "supersedes": [],
+      "sources": [
+        "crunch-public:evals/RESULTS.md"
+      ]
+    },
+    {
+      "id": "forced-gather-hops-40",
+      "title": "Forced gather-hop count",
+      "type": "stopping",
+      "status": "rejected",
+      "date": "2026-09-01",
+      "sample": {
+        "n": 40
+      },
+      "arms": [
+        "Forced one hop",
+        "Forced two hops"
+      ],
+      "method": "Pilot ablation against frozen Deep.",
+      "scores": {
+        "one_hop_win_rate": 0.625,
+        "two_hop_win_rate": 0.65
+      },
+      "decision": "Let the model decide when to stop; more forced searches were not better.",
+      "limitations": [
+        "Directional small slice."
+      ],
+      "supersedes": [],
+      "sources": [
+        "crunch-public:evals/RESULTS.md"
+      ]
+    },
+    {
+      "id": "vespa-general-25",
+      "title": "Vespa-only general-web retrieval pilot",
+      "type": "retrieval",
+      "status": "rejected",
+      "date": "2026-09-01",
+      "sample": {
+        "n": 25
+      },
+      "arms": [
+        "Vespa-only Crunch",
+        "Frozen Deep"
+      ],
+      "method": "Pilot ablation.",
+      "scores": {
+        "decided_win_rate": 0.2083
+      },
+      "decision": "Do not remove external long-tail retrieval for general traffic.",
+      "limitations": [
+        "Tiny slice; later enterprise Vespa results differ by traffic mix."
+      ],
+      "supersedes": [],
+      "sources": [
+        "crunch-public:evals/RESULTS.md"
+      ]
+    },
+    {
+      "id": "gather-to-schema-319",
+      "title": "Gather snippets directly to schema",
+      "type": "structured",
+      "status": "rejected",
+      "date": "2026-09-01",
+      "sample": {
+        "n": 319
+      },
+      "arms": [
+        "Gather-to-schema",
+        "Write-to-schema"
+      ],
+      "method": "Projector fed unranked snippets without finished prose.",
+      "scores": {
+        "decided_win_rate_vs_deep": 0.56
+      },
+      "decision": "Do not skip prose unless evidence is ranked and preserved for the projector.",
+      "limitations": [
+        "Older direct path differs materially from the later ranked-evidence path."
+      ],
+      "supersedes": [],
+      "sources": [
+        "crunch-public:evals/RESULTS.md"
+      ]
+    },
+    {
+      "id": "enterprise-toolbox-100",
+      "title": "Enterprise Toolbox Crunch versus Deep",
+      "type": "benchmark",
+      "status": "diagnostic",
+      "date": "2026-09-02",
+      "sample": {
+        "n": 100,
+        "mode": "sourcedAnswer"
+      },
+      "arms": [
+        "Toolbox Crunch",
+        "Stored Deep"
+      ],
+      "method": "Blind no-truncation Sonnet judge; full 100 swaps.",
+      "scores": {
+        "wins": 81,
+        "losses": 9,
+        "ties": 10,
+        "decided_win_rate": 0.9
+      },
+      "decision": "Strong customer-specific evidence; not representative enough for global claim.",
+      "limitations": [
+        "Single enterprise cohort; 24% swap flips."
+      ],
+      "supersedes": [],
+      "sources": [
+        "crunch-public:evals/sapiom-deep-100-20260902/RESULTS.md"
+      ]
+    },
+    {
+      "id": "enterprise-vespa-100",
+      "title": "Enterprise Vespa-only versus Deep",
+      "type": "benchmark",
+      "status": "diagnostic",
+      "date": "2026-09-02",
+      "sample": {
+        "n": 100,
+        "mode": "sourcedAnswer"
+      },
+      "arms": [
+        "Vespa-only Crunch",
+        "Stored Deep"
+      ],
+      "method": "Blind no-truncation Sonnet judge.",
+      "scores": {
+        "wins": 77,
+        "losses": 13,
+        "ties": 10,
+        "decided_win_rate": 0.8556
+      },
+      "decision": "Proceed to larger Vespa confirmation.",
+      "limitations": [
+        "Single cohort and small sample."
+      ],
+      "supersedes": [],
+      "sources": [
+        "crunch-public:evals/sapiom-deep-100-20260902/RESULTS.md"
+      ]
+    },
+    {
+      "id": "enterprise-toolbox-v-vespa-100",
+      "title": "Toolbox versus Vespa-only enterprise arm",
+      "type": "retrieval",
+      "status": "diagnostic",
+      "date": "2026-09-02",
+      "sample": {
+        "n": 100
+      },
+      "arms": [
+        "Toolbox Crunch",
+        "Vespa-only Crunch"
+      ],
+      "method": "Direct blind pairwise with full swap.",
+      "scores": {
+        "toolbox_wins": 42,
+        "vespa_wins": 35,
+        "ties": 23,
+        "swap_flip_rate": 0.53
+      },
+      "decision": "Treat retrieval arms as tied.",
+      "limitations": [
+        "Swap instability greatly exceeded margin."
+      ],
+      "supersedes": [],
+      "sources": [
+        "crunch-public:evals/sapiom-deep-100-20260902/RESULTS.md"
       ]
     },
     {
       "id": "enterprise-vespa-1000",
-      "description": "Enterprise sourced-answer traffic using internal Vespa retrieval without Brave.",
+      "title": "Enterprise Vespa-only benchmark",
+      "type": "benchmark",
+      "status": "canonical",
       "date": "2026-09-02",
       "sample": {
         "n": 1000,
-        "source": "Unique production queries from one enterprise customer",
-        "method": "Hash sample by log id"
+        "mode": "sourcedAnswer"
       },
-      "arms": {
-        "crunch": "gemini-3.7-flash with Vespa lexical + semantic retrieval, RRF, and reranking",
-        "comparator": "Stored production Linkup Deep answers"
-      },
-      "methodology": {
-        "judge": "claude-sonnet-4-5",
-        "design": "Blind pairwise, no answer truncation",
-        "swap_checks": 200
-      },
+      "arms": [
+        "Vespa-only Crunch",
+        "Stored Deep"
+      ],
+      "method": "Blind no-truncation Sonnet judge; 200 swaps.",
       "scores": {
         "wins": 821,
         "losses": 144,
         "ties": 35,
         "row_win_rate": 0.821,
         "decided_win_rate": 0.8508,
-        "ci95": [0.796, 0.844],
-        "latency_mean_s": 13.4,
-        "success": "1000/1000",
-        "estimated_model_cost_per_query_usd": 0.018
+        "p50_s": 12.3,
+        "mean_s": 13.4,
+        "cost_per_query": 0.018
       },
-      "caveats": [
-        "Single-customer traffic is not representative of all production traffic.",
-        "The sample deliberately includes a repeated wrapper pattern and is not volume-weighted."
+      "decision": "Canonical enterprise-cohort result; proves Vespa-only viability on this traffic.",
+      "limitations": [
+        "Single cohort; hash sample over-represents a repeated wrapper pattern; 26.5% swap flips."
+      ],
+      "supersedes": [
+        "enterprise-vespa-100"
       ],
       "sources": [
-        "crunch-public/evals/sapiom-deep-1000-20260902/RESULTS.md"
+        "crunch-public:evals/sapiom-deep-1000-20260902/RESULTS.md"
       ]
     },
     {
-      "id": "enterprise-multi-arm-100",
-      "description": "Three-way enterprise comparison isolating Toolbox/Brave retrieval from Vespa-only retrieval.",
-      "date": "2026-09-02",
+      "id": "filtered-production-200-v0",
+      "title": "Initial filtered Crunch run",
+      "type": "filters",
+      "status": "invalid",
+      "date": "2026-09-03",
       "sample": {
-        "n": 100,
-        "source": "Unique production sourcedAnswer queries from one enterprise customer",
-        "method": "Hash sample by log id"
+        "n": 200
       },
-      "methodology": {
-        "judge": "claude-sonnet-4-5",
-        "design": "Blind pairwise, no truncation, all 100 rows swap-checked"
-      },
-      "scores": [
-        {
-          "comparison": "Toolbox Crunch vs Deep",
-          "wins": 81,
-          "losses": 9,
-          "ties": 10,
-          "row_win_rate": 0.81,
-          "decided_win_rate": 0.9
-        },
-        {
-          "comparison": "Vespa Crunch vs Deep",
-          "wins": 77,
-          "losses": 13,
-          "ties": 10,
-          "row_win_rate": 0.77,
-          "decided_win_rate": 0.8556
-        },
-        {
-          "comparison": "Toolbox Crunch vs Vespa Crunch",
-          "toolbox_wins": 42,
-          "vespa_wins": 35,
-          "ties": 23,
-          "swap_flip_rate": 0.53,
-          "result": "tie"
-        }
+      "arms": [
+        "Vespa-only Crunch v0"
       ],
-      "caveats": [
-        "Small, single-customer sample.",
-        "The direct Toolbox/Vespa comparison is unresolved because swap instability exceeds the margin."
-      ],
-      "sources": [
-        "crunch-public/evals/sapiom-deep-100-20260902/RESULTS.md"
-      ]
-    },
-    {
-      "id": "production-850-ablations",
-      "description": "Pilot run used to detect evaluation bugs and choose ranking, stopping, and projection behavior.",
-      "date": "2026-09-01",
-      "sample": {
-        "n": 850,
-        "mix": {
-          "sourcedAnswer": 292,
-          "searchResults": 364,
-          "structured": 194
-        }
-      },
-      "methodology": {
-        "design": "Paired ablations against the same frozen Deep replay",
-        "judge": "gpt-5.6-luna"
-      },
-      "scores": [
-        {
-          "arm": "sourcedAnswer at 5,000-character clip",
-          "n": 292,
-          "wins": 245,
-          "losses": 46,
-          "ties": 1,
-          "decided_win_rate": 0.8419
-        },
-        {
-          "arm": "model-reranked searchResults",
-          "n": 364,
-          "wins": 277,
-          "losses": 87,
-          "ties": 0,
-          "decided_win_rate": 0.761
-        },
-        {
-          "arm": "split-finish searchResults",
-          "n": 200,
-          "wins": 152,
-          "losses": 48,
-          "ties": 0,
-          "decided_win_rate": 0.76
-        },
-        {
-          "arm": "Vespa-only general-web retrieval",
-          "n": 25,
-          "decided_win_rate": 0.2083,
-          "result": "rejected"
-        },
-        {
-          "arm": "one literal query",
-          "n": 40,
-          "decided_win_rate": 0.3438,
-          "result": "rejected"
-        },
-        {
-          "arm": "forced one-hop gather",
-          "n": 40,
-          "decided_win_rate": 0.625,
-          "result": "rejected"
-        },
-        {
-          "arm": "forced two-hop gather",
-          "n": 40,
-          "decided_win_rate": 0.65,
-          "result": "rejected"
-        },
-        {
-          "arm": "structured abstention",
-          "n": 194,
-          "decided_win_rate": 0.4286,
-          "result": "rejected"
-        }
-      ],
-      "caveats": [
-        "The original 1,800-character prose result was invalid because it clipped Crunch disproportionately.",
-        "Small ablation slices are directional, not launch evidence."
-      ],
-      "sources": [
-        "crunch-public/evals/RESULTS.md",
-        "crunch-public/evals/MANIFEST.json"
-      ]
-    },
-    {
-      "id": "production-1000-legacy",
-      "description": "Earlier live paired comparison on production depth=deep traffic.",
-      "date": "2026-08-24",
-      "sample": {
-        "n": 1000,
-        "comparable_n": 615,
-        "source": "30 days of production traffic"
-      },
-      "methodology": {
-        "design": "Blind pairwise judge with randomized order and ties",
-        "swap_checks": 60
-      },
+      "method": "Filtered replay before immutable include-domain repair.",
       "scores": {
-        "decided_n": 608,
-        "wins": 512,
-        "losses": 96,
-        "decided_win_rate": 0.842,
-        "ci95": [0.811, 0.869],
-        "latency_s": {
-          "crunch_p50": 9.3,
-          "crunch_p90": 15.2,
-          "deep_p50": 10.1,
-          "deep_p90": 22.2
+        "observed_include_domain_violations": true
+      },
+      "decision": "Invalidate v0 and constrain model-written site dorks.",
+      "limitations": [
+        "Superseded before final quality judge."
+      ],
+      "supersedes": [],
+      "sources": [
+        "crunch-public:evals/filtered-200-20260903/RESULTS.md"
+      ]
+    },
+    {
+      "id": "filtered-production-200",
+      "title": "Filtered production benchmark",
+      "type": "benchmark",
+      "status": "diagnostic",
+      "date": "2026-09-03",
+      "sample": {
+        "n": 200,
+        "population": 405462,
+        "strata": 11
+      },
+      "arms": [
+        "Vespa-only Crunch v1",
+        "Live Linkup Deep"
+      ],
+      "method": "Blind typed pairwise judge plus programmatic domain audit and 60 swaps.",
+      "scores": {
+        "wins": 67,
+        "losses": 32,
+        "ties": 101,
+        "decided_win_rate": 0.6768,
+        "search_results": [
+          6,
+          20,
+          49
+        ],
+        "domain_violations": {
+          "crunch": 0,
+          "deep": 33
+        },
+        "success": {
+          "crunch": 192,
+          "deep": 200
         }
       },
-      "caveats": [
-        "385 requests with unsupported date/domain filters were excluded.",
-        "Superseded by the newer stratified production-2,000 benchmark."
+      "decision": "Retain immutable filters, but do not ship unchanged: filtered searchResults and empty-result handling regress.",
+      "limitations": [
+        "Date compliance could not be audited from response documents; result dominated by sourcedAnswer."
+      ],
+      "supersedes": [
+        "filtered-production-200-v0"
       ],
       "sources": [
-        "crunch-public/BENCHMARKS.md",
-        "Deep-eval/data/deep_prod_1000.json"
+        "crunch-public:evals/filtered-200-20260903/RESULTS.md"
       ]
     },
     {
-      "id": "deepsearchqa-896",
-      "description": "Google DeepMind multi-step research benchmark, dominated by exhaustive set-answer questions.",
-      "date": "2026-08-24",
+      "id": "schema-guidance-40",
+      "title": "Schema-guided gathering pilot",
+      "type": "structured",
+      "status": "rejected",
+      "date": "2026-09-03",
       "sample": {
-        "n": 896,
-        "source": "Google DeepSearchQA shared questions"
+        "n": 40,
+        "leaf_opportunities": 882
       },
-      "methodology": {
-        "design": "Official DeepSearchQA autorater contract, paired on identical questions",
-        "headline_metric": "all_correct"
-      },
-      "scores": {
-        "crunch_all_correct": 0.362,
-        "deep_all_correct": 0.084,
-        "paired_delta_points": 27.8,
-        "paired_ci95_points": 3.4,
-        "crunch_better": 277,
-        "deep_better": 28,
-        "tied": 591,
-        "deep_set_answer": 0.043
-      },
-      "caveats": [
-        "A replacement Gemini autorater was used because the originally specified model was unavailable to new API keys.",
-        "This measures the internal Crunch harness, not a fresh run of the public single-file implementation."
+      "arms": [
+        "Current write path",
+        "Broad schema-guided write path"
       ],
+      "method": "Live interleaved arms; blind two-order Gemini judge.",
+      "scores": {
+        "nonempty_control": 0.268,
+        "nonempty_guided": 0.329,
+        "stable_guided_wins": 9,
+        "stable_control_wins": 8,
+        "latency_control_s": 22.6,
+        "latency_guided_s": 29.9
+      },
+      "decision": "Do not ship broad guidance alone: completion rose but correctness tied and latency increased.",
+      "limitations": [
+        "Prior Deep-win sample; three schema families; n=40."
+      ],
+      "supersedes": [],
       "sources": [
-        "crunch-public/BENCHMARKS.md",
-        "Deep-eval/data/dsqa_900.json",
-        "Deep-eval/results/bench/dsqa900_h8/"
+        "crunch-public@c1e405d:evals/schema-guidance-pilot-20260903/RESULTS.md"
       ]
     },
     {
-      "id": "hard-questions-20",
-      "description": "Chains, matrices, arithmetic, recency, and false-premise traps.",
-      "date": "2026-08-21",
+      "id": "schema-factorial-40",
+      "title": "Schema guidance by projection substrate factorial",
+      "type": "structured",
+      "status": "diagnostic",
+      "date": "2026-09-03",
       "sample": {
-        "n": 20,
-        "mix": "8 chain, 4 matrix, 4 trap, 2 temporal, 2 numeric"
+        "n": 40,
+        "generation_calls": 160
       },
-      "methodology": {
-        "design": "Atomic pre-authored success criteria, graded independently by Gemini and Fable"
-      },
+      "arms": [
+        "control write",
+        "guided write",
+        "control direct",
+        "guided direct"
+      ],
+      "method": "Fresh holdout, four interleaved live arms, blind judge in both orders.",
       "scores": {
-        "gemini_judge": {
-          "crunch": 0.863,
-          "exa": 0.86,
-          "deep": 0.653
+        "guided_direct_vs_write": {
+          "order1": [
+            16,
+            10,
+            14
+          ],
+          "order2": [
+            18,
+            7,
+            15
+          ]
         },
-        "fable_judge": {
-          "crunch": 0.824,
-          "exa": 0.882,
-          "deep": 0.686
-        },
-        "crunch_vs_exa_paired_delta": -0.028,
-        "paired_ci95": 0.151,
-        "result": "tie"
+        "pooled_direct_vs_write": [
+          31,
+          20,
+          29
+        ],
+        "pooled_guided_direct_vs_direct": [
+          17,
+          19,
+          44
+        ]
       },
-      "caveats": [
-        "The sample is too small to distinguish Crunch from Exa.",
-        "The two judges disagree on the direction of the Crunch/Exa result."
+      "decision": "Direct ranked-evidence projection is promising; broad guidance itself remains unproven.",
+      "limitations": [
+        "n=40; pooled order passes are not independent."
+      ],
+      "supersedes": [
+        "gather-to-schema-319",
+        "schema-guidance-40"
       ],
       "sources": [
-        "crunch-public/BENCHMARKS.md",
-        "Deep-eval/data/deep_hard_bench.json",
-        "Deep-eval/docs/hard-bench.md"
+        "crunch-public@8c58c5e:evals/schema-factorial-20260903/RESULTS.md"
       ]
     },
     {
-      "id": "production-checklist-100",
-      "description": "Atomic requirement and citation checks on production-style questions.",
-      "date": "2026-08-21",
+      "id": "schema-guided-direct-300",
+      "title": "Guided direct projection confirmation",
+      "type": "structured",
+      "status": "adopted",
+      "date": "2026-09-03",
       "sample": {
-        "n": 100,
-        "source": "Production queries"
+        "n": 300,
+        "generation_calls": 600,
+        "leaf_opportunities": 4999
       },
-      "methodology": {
-        "design": "Generate question-only checks, extract claim verdicts and URLs, then enforce URL allowlisting in code"
-      },
+      "arms": [
+        "Current gather-write-project",
+        "Guided gather-ranked-evidence-project"
+      ],
+      "method": "Interleaved live A/B; blind exact-schema judge; 60 reversed-order checks.",
       "scores": {
-        "checklist_pass": {
-          "crunch": 0.9403,
-          "exa": 0.894,
-          "deep": 0.61
+        "primary": {
+          "guided": 139,
+          "current": 79,
+          "ties": 82,
+          "decided_win_rate": 0.638,
+          "ci95": [
+            0.572,
+            0.699
+          ],
+          "p": 5.8e-05
         },
-        "unsourced_claims": {
-          "crunch": 0.028,
-          "exa": 0.076,
-          "deep": 0.115
+        "swap": {
+          "guided": 25,
+          "current": 15,
+          "ties": 20
         },
-        "crunch_latency_p50_s": 9.5,
-        "crunch_latency_p90_s": 14.3,
-        "crunch_model_cost_per_1000_usd": 14.71
+        "nonempty_current": 0.396,
+        "nonempty_guided": 0.425,
+        "cost_per_1000_current": 33.27,
+        "cost_per_1000_guided": 39.02
       },
-      "caveats": [
-        "On 73 real lookup queries Crunch and Exa tied; the overall margin came from agentic tasks.",
-        "This measures the internal harness, not a fresh public implementation run."
+      "decision": "Adopt direct ranked-evidence projection as the established lever; narrow guidance before production rollout.",
+      "limitations": [
+        "Gain is concentrated in one schema family; guidance versus unguided direct remains unproven; cost rose 17.3%."
+      ],
+      "supersedes": [
+        "schema-factorial-40",
+        "structured-projector-rescore-319"
       ],
       "sources": [
-        "crunch-public/BENCHMARKS.md",
-        "Deep-eval/data/deep_prod_100.json",
-        "Deep-eval/results/bench/scrape_judge/judge/summary-s1.json"
-      ]
-    },
-    {
-      "id": "output-modes",
-      "description": "Structured projection fidelity and searchResults ranking quality.",
-      "date": "2026-08-24",
-      "sample": {
-        "structured_n": 50,
-        "ranking_n": 100,
-        "head_to_head_decisions": 97
-      },
-      "methodology": {
-        "structured": "Project identical finished prose into schemas and compare against its prose ceiling",
-        "ranking": "Compare arrival order, reciprocal-rank fusion, and cross-encoder ordering against gold-answer recall",
-        "head_to_head": "Feed both top-10 lists through one fixed synthesizer, then judge pairwise"
-      },
-      "scores": {
-        "structured_strict": 0.62,
-        "structured_recall": 0.717,
-        "structured_projection_loss": 0.0,
-        "search_top10_recall": {
-          "arrival": 0.33,
-          "rank_fusion": 0.517,
-          "score_order": 0.566
-        },
-        "head_to_head": {
-          "crunch": 53,
-          "deep": 40,
-          "ties": 4,
-          "swap_flip_rate": 0.23,
-          "result": "tie"
-        }
-      },
-      "caveats": [
-        "Projection token and latency costs were omitted.",
-        "The measured searchResults path still generated prose before discarding it."
-      ],
-      "sources": [
-        "crunch-public/OUTPUT-MODES.md",
-        "Deep-eval/results/output_modes/README.md"
-      ]
-    },
-    {
-      "id": "chain-prompt-ab-10",
-      "description": "Tests whether an explicit sequential-chain instruction improves multi-hop behavior.",
-      "date": "2026-08-25",
-      "sample": {
-        "n": 10,
-        "type": "Sequential multi-hop chain questions"
-      },
-      "methodology": {
-        "design": "Serial alternating A/B run, read blind against four fixed checks"
-      },
-      "scores": {
-        "stock_passed": "10/10",
-        "chain_prompt_passed": "10/10",
-        "better": 0,
-        "worse": 0,
-        "tied": 10,
-        "result": "no measured improvement"
-      },
-      "caveats": [
-        "Small sample with one human evaluator.",
-        "Most intermediate entities were likely known from model pretraining."
-      ],
-      "sources": [
-        "crunch-public/behaviours.md",
-        "crunch-public/BENCHMARKS.md"
+        "crunch-public@3f00dd1:evals/schema-ab-300-20260903/RESULTS.md"
       ]
     }
   ]
