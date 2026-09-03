@@ -103,7 +103,7 @@ These are not restated in the evaluation-backed choices above.
 - **Blind paired judging.** Compare typed outputs with swaps and ties; a margin smaller than order instability is a tie.
 - **Force grounding first.** First turn: `tool_choice=required`, at least 3 distinct parallel searches, no final answer on that turn.
   - Prevents memory-only answers; first-hop latency stays near one search. Observed shipped envelope ~2.4 hops / 3.9 searches on production-100.
-  - No clean 0 vs 1 vs 3 first-hop A/B yet (a 100-query A/B is queued). Related but different: one literal query n=40 scored 34.4%; forced 1-hop/2-hop gather n=40 scored 62.5%/65.0% (those force stopping, not first-hop count).
+  - Related but different from first-hop count: one literal query n=40 scored 34.4%; forced 1-hop/2-hop gather n=40 scored 62.5%/65.0% (those force stopping, not first-hop count).
 - **Guess-and-verify on chains.** On multi-hop questions the model often guesses the intermediate entity and fires an open check in the same turn.
   - Eval: 10 chain questions, stock prompt vs extra “do this in order” instruction, both 10/10, 0–0–10, same ~2.2 hops.
   - Decision: keep stock guess-and-verify; extra chain wording did not help. Small n; entities were likely known from pretraining.
@@ -111,10 +111,24 @@ These are not restated in the evaluation-backed choices above.
   - Eval: ~103 domain-scoped questions, exact-URL vs host allowlist (rank_guard). Exact-URL refused 14 legitimate fetches. Host allowlist allowed 15 inferred-path fetches; 14 returned text and were cited. Quality −0.010 ± 0.049 (null).
   - Shipped because it unblocked real official-page fetches with no measured quality cost.
 
-## Current boundaries and open questions
+## Open decisions
 
-- General web retrieval and bounded enterprise retrieval need different validation; one backend is not assumed to fit all traffic.
-- Structured output works through the same evidence loop, but projection quality across new schema families still needs testing.
-- Filtered search and empty-result behavior must improve without weakening caller domain and date constraints.
-- The best trigger for eager fetching on analytical or multi-part questions is still open.
-- Cheaper models are candidates only if they preserve first-search compliance, answer quality, and latency.
+Important choices that are **not** locked. Numbered eval-backed choices and remaining principles above stay as shipped.
+
+**Model.** Gemini 3.7 Flash is current, not locked. A 200-question bakeoff (Gemini, Luna, GLM, DeepSeek) is in progress. Qwen 3.7 Flash is unavailable (no such hosted model / no Baseten API). Grok 4.1 Fast is deprecated on OpenRouter.
+
+**Forced first-hop count.** Shipped default is 3 parallel searches and no answer on turn 1. No clean 0 vs 1 vs 3 A/B yet; a 100-query A/B is queued behind the bakeoff.
+
+**Structured generation path.** Shipping is write-then-project. Direct evidence→schema beat write-first on n=300 (139–79–82, 63.8% of decided) but was not adopted. Broad schema-guided retrieval is unproven.
+
+**Citation entailment.** We repair missing `[n]` and drop invented URLs. We do not check that the cited snippet actually supports the claim. This is the main leftover sourced-answer failure mode.
+
+**URL scrubber false positives.** Legitimate requested links are sometimes removed because of redirect, slash, or path mismatch.
+
+**Filtered `searchResults`.** Request filters stay outside the model (0 Crunch domain violations vs 33 Deep). Recall and empty-result handling are worse than Deep; do not ship that path unchanged. Date compliance is not end-to-end auditable (no `last_modified`).
+
+**Retrieval backend per workload.** Toolbox/hybrid for general web; Vespa-only can win on some customer traffic and loses on open-web/strict filters. No single universal choice.
+
+**Tool descriptions.** An important lever; what changed and which eval drove it is not written down yet.
+
+**Image / full API parity.** Images are still unsupported. This is a production-parity gap, not a quality-loop decision.
