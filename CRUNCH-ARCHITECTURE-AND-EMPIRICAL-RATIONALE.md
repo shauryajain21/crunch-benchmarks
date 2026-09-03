@@ -23,7 +23,7 @@ Compact current-state architecture. Evidence IDs resolve to
 
 - Function: Requires at least one search before any answer; permits parallel query rewrites.
 - Decision: Prevent memory-only answers; use guess-and-verify for likely intermediates, with a non-presupposing query when needed.
-- Evidence: One literal query reached 34.4% decided (`search-literal-40`); mandatory chain sequencing changed no answers in 10/10 ties (`chain-prompt-10`).
+- Evidence: One literal query reached 34.4% decided (`search-literal-40`); mandatory chain sequencing changed no answers in 10/10 ties (`chain-prompt-10`). First-hop count A/B left the shipped 3-search rule in place (`firsthop-ab-100`).
 
 ## Part 2 — Search loop and retrieval
 

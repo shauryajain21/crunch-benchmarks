@@ -104,8 +104,9 @@ These are not restated in the evaluation-backed choices above.
 - **Row-level failures.** One bad row must not stop a campaign; rows are isolated and resumable.
 - **Blind paired judging.** Compare typed outputs with swaps and ties; a margin smaller than order instability is a tie.
 - **Force grounding first.** First turn: `tool_choice=required`, at least 3 distinct parallel searches, no final answer on that turn.
-  - Prevents memory-only answers; first-hop latency stays near one search. Observed shipped envelope ~2.4 hops / 3.9 searches on production-100.
-  - Related but different from first-hop count: one literal query n=40 scored 34.4%; forced 1-hop/2-hop gather n=40 scored 62.5%/65.0% (those force stopping, not first-hop count).
+  - Eval: n=100 production `sourcedAnswer`, same IDs, Gemini 3.7 Flash, Claude Sonnet 4.5 blind pairwise, 40 swaps. Shipped (`min_first_searches=3`, first-turn required, no answer turn 1) vs free (`min_first=0`, auto, first-turn answer allowed): **41–24–35** (63.1% decided); **16/40 swap flips (40%)** — margin does not beat order instability. Median latency ~10.5s vs ~10.6s. Free never answered on turn 1 (never-answer-from-memory stayed on); first-turn searches 2.03, 61 rows <3. Shipped 3.31, never <3 ([`firsthop-ab-100`](benchmarks/firsthop-ab-100.md)).
+  - Decision: keep the shipped first-hop rule. Diagnostic, not a shipped-config change. 3 stays the default because the lean is the right direction and latency is not worse; the swap rate blocks locking “3 is optimal.”
+  - Later-hop stopping, not first-hop count: one literal query n=40 scored 34.4%; forced 1-hop/2-hop gather n=40 scored 62.5%/65.0%.
 - **Guess-and-verify on chains.** On multi-hop questions the model often guesses the intermediate entity and fires an open check in the same turn.
   - Eval: 10 chain questions, stock prompt vs extra “do this in order” instruction, both 10/10, 0–0–10, same ~2.2 hops.
   - Decision: keep stock guess-and-verify; extra chain wording did not help. Small n; entities were likely known from pretraining.
