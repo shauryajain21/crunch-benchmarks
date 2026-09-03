@@ -2,7 +2,7 @@
 
 Crunch turns a question into a grounded, typed API response by running one fast model inside a small, controlled search loop.
 
-`question → one fast model → search/fetch loop → answer → coverage/citation cleanup → API output`
+`question → one fast reasoning model → search/fetch loop → answer → coverage/citation cleanup → API output`
 
 ## Overall design
 
