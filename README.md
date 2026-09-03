@@ -18,6 +18,7 @@ Private, privacy-preserving record of Crunch design decisions and evaluations. R
 The structured result is an architecture A/B, not a direct replacement for the production-vs-Deep score. Filtered Crunch is not launch-ready because searchResults quality and completion regressed.
 
 ## Archive
+- [Eval writeups](docs/benchmarks/)
 - [Decision archive](docs/DECISIONS-ARCHIVE.md)
 - [Complete experiment register](docs/EXPERIMENTS.md)
 - [Timeline](docs/TIMELINE.md)

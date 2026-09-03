@@ -39,55 +39,55 @@ Retrieval supplies evidence; it does not decide when the whole task is complete 
 ### 1. Stop adaptively
 
 - The model can stop after enough evidence or continue with another search or fetch.
-- Forced one-hop scored 62.5% and forced two-hop scored 65.0%, each on n=40 against Deep.
-- The roughly 76% figure comes from the separate n=200 split-finish `searchResults` arm against Deep, not a directly paired three-arm test. We therefore avoid fixed hop counts.
+- Forced one-hop scored 62.5% and forced two-hop scored 65.0%, each on n=40 against Deep ([`forced-gather-hops-40`](benchmarks/forced-gather-hops-40.md)).
+- The roughly 76% figure comes from the separate n=200 split-finish `searchResults` arm against Deep ([`search-split-finish-200`](benchmarks/search-split-finish-200.md)), not a directly paired three-arm test. We therefore avoid fixed hop counts.
 
 ### 2. Use snippets first
 
 - Search returns snippets first; the model fetches full pages only when needed.
-- On n=100, automatic scraping scored 0.930 at 30.5s p50. No automatic scraping scored 0.940 at 9.5s.
+- On n=100, automatic scraping scored 0.930 at 30.5s p50. No automatic scraping scored 0.940 at 9.5s ([`scrape-top-100`](benchmarks/scrape-top-100.md)).
 - Scraping added large latency without quality gain, so automatic top-page scraping was disabled.
 
 ### 3. Return ten results per search
 
 - Each search returns at most ten results, reducing model context and retrieval cost.
-- On n=25, ten versus twenty results changed quality by +0.015 ± 0.086.
+- On n=25, ten versus twenty results changed quality by +0.015 ± 0.086 ([`toolbox-caps-25`](benchmarks/toolbox-caps-25.md)).
 - The quality difference was a null, so the lower-cost, smaller-context limit stayed at ten.
 
 ### 4. Use the v7 answer contract
 
 - The v7 answer contract tells the model to directly answer every requested part, resolve conflicting evidence, show calculations, clearly state missing information, and cite each factual claim.
-- On 24 difficult questions, missing requirements fell from 25.8% to 16.7%. The full n=100 gain was only +0.012 ± 0.041.
+- On 24 difficult questions, missing requirements fell from 25.8% to 16.7%. The full n=100 gain was only +0.012 ± 0.041 ([`prompt-v6-v7`](benchmarks/prompt-v6-v7.md)).
 - We adopted v7 for fewer omissions and its clearer mechanism, not as a large aggregate quality win.
 
 ### 5. Run a coverage pass
 
 - After writing, the harness checks whether requested parts are missing and fills supported gaps.
-- On n=100, score rose from 0.911 to 0.930; the benefit was concentrated in agentic tasks.
+- On n=100, score rose from 0.911 to 0.930; the benefit was concentrated in agentic tasks ([`coverage-pass-100`](benchmarks/coverage-pass-100.md)).
 - We kept the pass as an omission safeguard, not as a broad lookup-quality claim.
 
 ### 6. Repair and renumber citations
 
 - Deterministic cleanup maps citations to the final emitted source list and renumbers them.
-- Regrading the same stored answers raised score from 0.571 to 0.748; unsourced claims fell from 23.8% to 6.1%.
+- Regrading the same stored answers raised score from 0.571 to 0.748; unsourced claims fell from 23.8% to 6.1% ([`citation-renumber-rescore`](benchmarks/citation-renumber-rescore.md)).
 - Because the answers did not change, this showed a plumbing failure. Citation repair became part of finalization.
 
 ### 7. Model-rank `searchResults`
 
 - The model chooses across result lists from rewritten subqueries instead of comparing raw cross-query scores.
-- On the same n=364 benchmark slice, score-max reached 45.2% against Deep and model reranking reached 76.1% against Deep.
+- On the same n=364 benchmark slice, score-max reached 45.2% against Deep ([`search-max-score-364`](benchmarks/search-max-score-364.md)) and model reranking reached 76.1% against Deep ([`search-model-rerank-364`](benchmarks/search-model-rerank-364.md)).
 - These are separate comparisons to Deep, not necessarily a direct reranker-versus-score judge. The score-scale failure still justified model ranking.
 
 ### 8. End `searchResults` with `done`
 
 - Once ranking is complete, the model calls `done` instead of writing prose that the API discards.
-- On n=200, quality was unchanged by the paired sign test (p=0.67), while latency fell from 44.1s to 8.4s.
+- On n=200, quality was unchanged by the paired sign test (p=0.67), while latency fell from 44.1s to 8.4s ([`search-split-finish-200`](benchmarks/search-split-finish-200.md)).
 - The large latency gain with no measured quality loss made `done` the finish contract.
 
 ### 9. Keep filters outside the model
 
 - The harness applies caller domain and date filters as immutable constraints outside model-written queries.
-- On n=200 filtered requests, Crunch returned 0 domain-violating URLs versus 33 for Deep.
+- On n=200 filtered requests, Crunch returned 0 domain-violating URLs versus 33 for Deep ([`filtered-production-200`](benchmarks/filtered-production-200.md)).
 - Crunch `searchResults` recall and reliability were worse, so the filter design stayed but the release was not approved.
 
 ### 10. Own the agent loop
@@ -100,16 +100,16 @@ Retrieval supplies evidence; it does not decide when the whole task is complete 
 
 These are not restated in the evaluation-backed choices above.
 
-- **One fast reasoning model.** The same model gathers evidence and writes the answer, keeping the question, queries, evidence, and uncertainty in one context. A separate Pro writer scored 0.750 versus 0.746 for the loop writer at 4.8× model cost.
+- **One fast reasoning model.** The same model gathers evidence and writes the answer, keeping the question, queries, evidence, and uncertainty in one context. A separate Pro writer scored 0.750 versus 0.746 for the loop writer at 4.8× model cost ([`synthesis-writers-24`](benchmarks/synthesis-writers-24.md)).
 - **Row-level failures.** One bad row must not stop a campaign; rows are isolated and resumable.
 - **Blind paired judging.** Compare typed outputs with swaps and ties; a margin smaller than order instability is a tie.
 - **Force grounding first.** First turn: `tool_choice=required`, at least 3 distinct parallel searches, no final answer on that turn.
   - Eval: n=100 production `sourcedAnswer`, same IDs, Gemini 3.7 Flash, Claude Sonnet 4.5 blind pairwise, 40 swaps. Shipped (`min_first_searches=3`, first-turn required, no answer turn 1) vs free (`min_first=0`, auto, first-turn answer allowed): **41–24–35** (63.1% decided); **16/40 swap flips (40%)** — margin does not beat order instability. Median latency ~10.5s vs ~10.6s. Free never answered on turn 1 (never-answer-from-memory stayed on); first-turn searches 2.03, 61 rows <3. Shipped 3.31, never <3 ([`firsthop-ab-100`](benchmarks/firsthop-ab-100.md)).
   - Decision: keep the shipped first-hop rule. Diagnostic, not a shipped-config change. 3 stays the default because the lean is the right direction and latency is not worse; the swap rate blocks locking “3 is optimal.”
-  - Later-hop stopping, not first-hop count: one literal query n=40 scored 34.4%; forced 1-hop/2-hop gather n=40 scored 62.5%/65.0%.
+  - Later-hop stopping, not first-hop count: one literal query n=40 scored 34.4% ([`search-literal-40`](benchmarks/search-literal-40.md)); forced 1-hop/2-hop gather n=40 scored 62.5%/65.0% ([`forced-gather-hops-40`](benchmarks/forced-gather-hops-40.md)).
 - **Guess-and-verify on chains.** On multi-hop questions the model often guesses the intermediate entity and fires an open check in the same turn.
-  - Eval: 10 chain questions, stock prompt vs extra “do this in order” instruction, both 10/10, 0–0–10, same ~2.2 hops.
+  - Eval: 10 chain questions, stock prompt vs extra “do this in order” instruction, both 10/10, 0–0–10, same ~2.2 hops ([`chain-prompt-10`](benchmarks/chain-prompt-10.md)).
   - Decision: keep stock guess-and-verify; extra chain wording did not help. Small n; entities were likely known from pretraining.
 - **Host allowlist for fetch.** A host must first appear in search results; another path on that host is allowed. Reject any-host and exact-URL-only.
-  - Eval: ~103 domain-scoped questions, exact-URL vs host allowlist (rank_guard). Exact-URL refused 14 legitimate fetches. Host allowlist allowed 15 inferred-path fetches; 14 returned text and were cited. Quality −0.010 ± 0.049 (null).
+  - Eval: ~103 domain-scoped questions, exact-URL vs host allowlist (rank_guard). Exact-URL refused 14 legitimate fetches. Host allowlist allowed 15 inferred-path fetches; 14 returned text and were cited. Quality −0.010 ± 0.049 (null) ([`host-fetch-guard`](benchmarks/host-fetch-guard.md)).
   - Shipped because it unblocked real official-page fetches with no measured quality cost.

@@ -26,6 +26,7 @@ The machine-readable record is [`benchmarks.json`](../benchmarks.json). Scores b
 | 2026-08-20 | `autoread-ranking-103` | fetching | **rejected** | Leave index order as default; mechanism changed pages but not measured quality. |
 | 2026-08-20 | `host-fetch-guard` | reliability | **adopted** | Permit inferred paths only on previously seen hosts. |
 | 2026-08-20 | `domain-scope-108` | filters | **adopted** | Keep explicit user domain constraints hard. |
+| 2026-08-20 | `claim-verify-100` | reliability | **rejected** | Leave lexical claim verification off; −0.011 ± 0.029 for extra latency and cost. |
 | 2026-08-20 | `brave-second-index-100` | retrieval | **rejected** | Do not add retrieval breadth when the evidence-read budget is the bottleneck. |
 | 2026-08-21 | `toolbox-caps-25` | reliability | **adopted** | Cap results at 10 and fetched page text at 12k. |
 | 2026-08-21 | `prod100-corrected` | benchmark | **canonical** | Canonical internal-harness configuration; quality is tied with Exa on ordinary lookups. |
@@ -36,6 +37,12 @@ The machine-readable record is [`benchmarks.json`](../benchmarks.json). Scores b
 | 2026-08-24 | `search-rank-score-100` | search_results | **superseded** | Evidence that arrival order was wrong; raw score was later found incomparable across rewritten queries. |
 | 2026-08-24 | `search-head-to-head-97` | search_results | **diagnostic** | Treat as tie; ranking mechanism required a production typed-output judge. |
 | 2026-08-25 | `chain-prompt-10` | prompt | **rejected** | Preserve guess-and-verify; do not spend a turn sequencing guessable entities. |
+| 2026-08-31 | `vespa-prod100` | retrieval | **diagnostic** | Vespa-only 0.892 vs Toolbox 0.938 on production-100. |
+| 2026-08-31 | `vespa-hard-20` | retrieval | **diagnostic** | Vespa-only 0.724 vs published Toolbox 0.863 on hard-20. |
+| 2026-08-31 | `vespa-dsqa-898` | benchmark | **diagnostic** | Vespa-only 29.3% vs Toolbox 36.1% all-correct; not the public board. |
+| 2026-08-31 | `vespa-dsqa-450-h16` | stopping | **diagnostic** | 16 hops 32.2% vs vespa 8-hop 31.3%; does not close the Toolbox gap. |
+| 2026-08-31 | `dsqa-16hop-50` | stopping | **diagnostic** | Toolbox 16 hops 46% vs 8 hops 40% on n=50; wide CI. |
+| 2026-08-31 | `vespa-prod1000` | benchmark | **blocked** | Planned vespa-only production-1000; Infisical/Columbus died before start. |
 | 2026-09-01 | `production-850-clip1800` | measurement | **invalid** | Invalidate the 61% number; raise clip to 5,000 or do not truncate. |
 | 2026-09-01 | `search-max-score-364` | search_results | **invalid** | Do not compare raw reranker scores across rewritten queries. |
 | 2026-09-01 | `search-model-rerank-364` | search_results | **adopted** | Use the model to choose across sub-query result lists. |
@@ -55,12 +62,14 @@ The machine-readable record is [`benchmarks.json`](../benchmarks.json). Scores b
 | 2026-09-02 | `enterprise-vespa-100` | benchmark | **diagnostic** | Proceed to larger Vespa confirmation. |
 | 2026-09-02 | `enterprise-toolbox-v-vespa-100` | retrieval | **diagnostic** | Treat retrieval arms as tied. |
 | 2026-09-02 | `enterprise-vespa-1000` | benchmark | **canonical** | Canonical enterprise-cohort result; proves Vespa-only viability on this traffic. |
+| 2026-09-02 | `judge-max-tokens-180` | measurement | **invalid** | Anthropic 180-token judge clip produced fake ties; regraded at 1024. |
 | 2026-09-03 | `filtered-production-200-v0` | filters | **invalid** | Invalidate v0 and constrain model-written site dorks. |
 | 2026-09-03 | `filtered-production-200` | benchmark | **diagnostic** | Retain immutable filters, but do not ship unchanged: filtered searchResults and empty-result handling regress. |
 | 2026-09-03 | `schema-guidance-40` | structured | **rejected** | Do not ship broad guidance alone: completion rose but correctness tied and latency increased. |
 | 2026-09-03 | `schema-factorial-40` | structured | **diagnostic** | Direct ranked-evidence projection is promising; broad guidance itself remains unproven. |
 | 2026-09-03 | `schema-guided-direct-300` | structured | **adopted** | Adopt direct ranked-evidence projection as the established lever; narrow guidance before production rollout. |
 | 2026-09-03 | `firsthop-ab-100` | stopping | **diagnostic** | Forced 3-search first hop 41–24–35 vs free first turn; 40% swap flips, no shipped change. |
+| 2026-09-03 | `model-eval-200` | model_selection | **incomplete** | Five-model generation on filtered-200; no quality judge. |
 
 ## Scope rules
 

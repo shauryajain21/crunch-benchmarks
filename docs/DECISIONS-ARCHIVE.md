@@ -28,6 +28,7 @@ Exhaustive historical record. The engineer-facing decision document is [`DECISIO
 
 - **v7 answer contract — adopted.** Dated verdicts, explicit negatives, source adjudication, arithmetic, and complete entity×attribute coverage reduce omissions. Its pass-rate delta alone is not proven. `prompt-v6-v7`.
 - **Citation IDs must index emitted sources — adopted invariant.** Renumbering fixed a 0.179 false quality loss with zero regressions. `citation-renumber-rescore`.
+- **Lexical claim verification — rejected.** A post-write verify pass was −0.011 ± 0.029 for +3s and extra cost; lexical “unsupported” did not match the judge. `claim-verify-100`.
 - **Never trust raw URLs from generation — adopted invariant.** Strip unretrieved URLs, allowlist sources, and repair citation placement before return. `host-fetch-guard`, `prod100-corrected`.
 
 ## Output modes and schemas

@@ -17,6 +17,7 @@
 7. Separate fresh runs, re-projections, and re-judges. They answer different causal questions.
 
 ## Known invalid instruments
+- Anthropic `max_tokens=180` clipped the Sapiom-100 judge JSON and invented ties; those rows were regraded at 1024.
 - The original production-100 checklist result had unresolved citation IDs and a 1,400-character clip.
 - The 850 sourcedAnswer judge clipped at 1,800 characters, cutting 75% of Crunch and 20% of Deep.
 - Split-finish rows were falsely failed when status was derived from a non-existent prose answer.

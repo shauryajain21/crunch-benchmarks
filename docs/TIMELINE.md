@@ -24,6 +24,10 @@
 - An explicit chain prompt was a no-op; observed behavior was guess-and-verify.
 - A 1,000-row production replay and DeepSearchQA established broader performance, while retaining filter and autorater caveats.
 
+## 31 August — Vespa-only versus Toolbox
+- Same Crunch agent on vespa-hybrid (no Brave): production-100 0.892 vs Toolbox 0.938; DeepSearchQA 29.3% vs 36.1%; hard-20 0.724 vs a published Toolbox 0.863.
+- Sixteen hops did not close the DSQA gap. A 1,000-row vespa production run did not start.
+
 ## 1 September — typed production bench and ablations
 - The 850-row pilot exposed a 1,800-character judge clip, cross-query score misuse, split-finish status errors, and a row-1,520 runner crash.
 - Model ranking and a `done` finish fixed searchResults quality and latency.
@@ -32,7 +36,7 @@
 
 ## 2 September — projector repair and enterprise retrieval
 - Null/coercion/source repairs lifted a selected structured re-projection to 69.8% decided, but it was not a fresh full run.
-- A 1,000-row enterprise cohort showed Vespa-only Crunch at 82.1% of rows versus stored Deep.
+- A 1,000-row enterprise cohort showed Vespa-only Crunch at 82.1% of rows versus stored Deep. Mid-run, `max_tokens=180` clipped the judge JSON and was regraded.
 - Toolbox and Vespa were indistinguishable on the smaller direct comparison because swap instability exceeded the margin.
 
 ## 3 September — filters and direct structured projection

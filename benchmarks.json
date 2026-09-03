@@ -52,6 +52,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/vendor-replay-400.md",
         "Deep-eval:docs/experiment.md"
       ]
     },
@@ -80,6 +81,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/parallel-core2x-400.md",
         "Deep-eval:docs/experiment.md"
       ]
     },
@@ -104,6 +106,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/vendor-fast-variants.md",
         "Deep-eval:docs/experiment.md"
       ]
     },
@@ -142,6 +145,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/planner-diverse-100.md",
         "Deep-eval:docs/experiment.md"
       ]
     },
@@ -173,6 +177,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/model-bakeoff-20.md",
         "Deep-eval:STATUS.md",
         "Deep-eval:docs/index-agent.md"
       ]
@@ -211,6 +216,7 @@
         "model-bakeoff-20"
       ],
       "sources": [
+        "docs/benchmarks/model-hunt-25.md",
         "Deep-eval:docs/model-hunt.md"
       ]
     },
@@ -235,6 +241,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/native-cheap-models.md",
         "Deep-eval:docs/model-hunt.md"
       ]
     },
@@ -275,6 +282,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/hard-bench-20.md",
         "crunch-public:BENCHMARKS.md",
         "Deep-eval:docs/hard-bench.md"
       ]
@@ -305,6 +313,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/prod100-initial.md",
         "Deep-eval:STATUS.md"
       ]
     },
@@ -335,6 +344,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/citation-renumber-rescore.md",
         "Deep-eval:STATUS.md"
       ]
     },
@@ -363,6 +373,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/judge-clip-1400.md",
         "Deep-eval:STATUS.md"
       ]
     },
@@ -397,6 +408,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/prompt-v6-v7.md",
         "Deep-eval:STATUS.md"
       ]
     },
@@ -428,6 +440,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/synthesis-writers-24.md",
         "Deep-eval:STATUS.md"
       ]
     },
@@ -458,6 +471,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/coverage-pass-100.md",
         "Deep-eval:STATUS.md"
       ]
     },
@@ -489,6 +503,7 @@
         "scrape-top-20"
       ],
       "sources": [
+        "docs/benchmarks/scrape-top-100.md",
         "Deep-eval:STATUS.md"
       ]
     },
@@ -519,6 +534,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/scrape-top-20.md",
         "Deep-eval:STATUS.md"
       ]
     },
@@ -549,6 +565,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/fetch-rule-100.md",
         "Deep-eval:STATUS.md"
       ]
     },
@@ -579,6 +596,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/autoread-ranking-103.md",
         "Deep-eval:STATUS.md"
       ]
     },
@@ -609,6 +627,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/host-fetch-guard.md",
         "Deep-eval:STATUS.md"
       ]
     },
@@ -641,6 +660,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/domain-scope-108.md",
         "Deep-eval:STATUS.md"
       ]
     },
@@ -671,6 +691,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/brave-second-index-100.md",
         "Deep-eval:STATUS.md"
       ]
     },
@@ -700,6 +721,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/toolbox-caps-25.md",
         "Deep-eval:STATUS.md"
       ]
     },
@@ -741,6 +763,7 @@
         "prod100-initial"
       ],
       "sources": [
+        "docs/benchmarks/prod100-corrected.md",
         "crunch-public:BENCHMARKS.md",
         "Deep-eval:CRUNCH.md"
       ]
@@ -774,6 +797,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/deepsearchqa-896.md",
         "crunch-public:BENCHMARKS.md"
       ]
     },
@@ -805,6 +829,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/production-1000-legacy.md",
         "crunch-public:BENCHMARKS.md"
       ]
     },
@@ -835,6 +860,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/structured-projection-50.md",
         "Deep-eval:results/output_modes/README.md"
       ]
     },
@@ -863,6 +889,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/search-rank-rff-50.md",
         "Deep-eval:results/output_modes/README.md"
       ]
     },
@@ -896,6 +923,7 @@
         "search-rank-rff-50"
       ],
       "sources": [
+        "docs/benchmarks/search-rank-score-100.md",
         "crunch-public:OUTPUT-MODES.md"
       ]
     },
@@ -925,6 +953,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/search-head-to-head-97.md",
         "crunch-public:OUTPUT-MODES.md"
       ]
     },
@@ -955,6 +984,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/chain-prompt-10.md",
         "crunch-public:behaviours.md"
       ]
     },
@@ -983,6 +1013,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/production-850-clip1800.md",
         "crunch-public:evals/RESULTS.md"
       ]
     },
@@ -1008,6 +1039,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/search-max-score-364.md",
         "crunch-public:evals/RESULTS.md"
       ]
     },
@@ -1041,6 +1073,7 @@
         "search-max-score-364"
       ],
       "sources": [
+        "docs/benchmarks/search-model-rerank-364.md",
         "crunch-public:evals/RESULTS.md"
       ]
     },
@@ -1072,6 +1105,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/search-split-finish-200.md",
         "crunch-public:evals/RESULTS.md"
       ]
     },
@@ -1099,6 +1133,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/runner-status-bug.md",
         "crunch-public:evals/RESULTS.md"
       ]
     },
@@ -1125,6 +1160,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/runner-row1520-crash.md",
         "crunch-public:evals/RESULTS.md"
       ]
     },
@@ -1162,6 +1198,7 @@
         "production-850-clip1800"
       ],
       "sources": [
+        "docs/benchmarks/production-2000.md",
         "crunch-public:evals/bench-2000-20260901/RESULTS.md"
       ]
     },
@@ -1199,6 +1236,7 @@
         "search-split-finish-200"
       ],
       "sources": [
+        "docs/benchmarks/production-2000.md",
         "crunch-public:evals/bench-2000-20260901/RESULTS.md"
       ]
     },
@@ -1229,6 +1267,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/production-2000.md",
         "crunch-public:evals/bench-2000-20260901/RESULTS.md"
       ]
     },
@@ -1265,6 +1304,7 @@
         "production-2000-structured-shipping"
       ],
       "sources": [
+        "docs/benchmarks/structured-projector-rescore-319.md",
         "crunch-public:evals/RESULTS.md"
       ]
     },
@@ -1291,6 +1331,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/structured-abstention-194.md",
         "crunch-public:evals/RESULTS.md"
       ]
     },
@@ -1317,6 +1358,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/search-literal-40.md",
         "crunch-public:evals/RESULTS.md"
       ]
     },
@@ -1344,6 +1386,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/forced-gather-hops-40.md",
         "crunch-public:evals/RESULTS.md"
       ]
     },
@@ -1370,6 +1413,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/vespa-general-25.md",
         "crunch-public:evals/RESULTS.md"
       ]
     },
@@ -1396,6 +1440,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/gather-to-schema-319.md",
         "crunch-public:evals/RESULTS.md"
       ]
     },
@@ -1426,6 +1471,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/enterprise-toolbox-100.md",
         "crunch-public:evals/sapiom-deep-100-20260902/RESULTS.md"
       ]
     },
@@ -1456,6 +1502,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/enterprise-vespa-100.md",
         "crunch-public:evals/sapiom-deep-100-20260902/RESULTS.md"
       ]
     },
@@ -1485,6 +1532,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/enterprise-toolbox-v-vespa-100.md",
         "crunch-public:evals/sapiom-deep-100-20260902/RESULTS.md"
       ]
     },
@@ -1521,6 +1569,7 @@
         "enterprise-vespa-100"
       ],
       "sources": [
+        "docs/benchmarks/enterprise-vespa-1000.md",
         "crunch-public:evals/sapiom-deep-1000-20260902/RESULTS.md"
       ]
     },
@@ -1546,6 +1595,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/filtered-production-200-v0.md",
         "crunch-public:evals/filtered-200-20260903/RESULTS.md"
       ]
     },
@@ -1592,6 +1642,7 @@
         "filtered-production-200-v0"
       ],
       "sources": [
+        "docs/benchmarks/filtered-production-200.md",
         "crunch-public:evals/filtered-200-20260903/RESULTS.md"
       ]
     },
@@ -1624,6 +1675,7 @@
       ],
       "supersedes": [],
       "sources": [
+        "docs/benchmarks/schema-guidance-40.md",
         "crunch-public@c1e405d:evals/schema-guidance-pilot-20260903/RESULTS.md"
       ]
     },
@@ -1677,6 +1729,7 @@
         "schema-guidance-40"
       ],
       "sources": [
+        "docs/benchmarks/schema-factorial-40.md",
         "crunch-public@8c58c5e:evals/schema-factorial-20260903/RESULTS.md"
       ]
     },
@@ -1727,6 +1780,7 @@
         "structured-projector-rescore-319"
       ],
       "sources": [
+        "docs/benchmarks/schema-guided-direct-300.md",
         "crunch-public@3f00dd1:evals/schema-ab-300-20260903/RESULTS.md"
       ]
     },
@@ -1794,6 +1848,341 @@
         "docs/benchmarks/firsthop-ab-100.md",
         "local:/Users/shaurya/tmp/crunch-firsthop-ab-100-20260903",
         "crunch-public@478a4ae"
+      ]
+    },
+    {
+      "id": "claim-verify-100",
+      "title": "Lexical claim verification pass",
+      "type": "reliability",
+      "status": "rejected",
+      "date": "2026-08-20",
+      "sample": {
+        "n": 100,
+        "graded_n": 90
+      },
+      "arms": [
+        "crunch_v3",
+        "crunch_v4 (+verify)"
+      ],
+      "method": "Same 100 production questions; five systems in one checklist pass after structural fixes. Ten extract errors left n=90 graded.",
+      "scores": {
+        "v3_pass": 0.622,
+        "v4_pass": 0.611,
+        "delta": -0.011,
+        "ci95": 0.029,
+        "flagged_rows": 73,
+        "mechanical_fix_rate": 0.68,
+        "p50_v3_s": 10.509,
+        "p50_v4_s": 13.482,
+        "cost_per_1000_v3": 12.17,
+        "cost_per_1000_v4": 18.36
+      },
+      "decision": "Leave verify off. Lexical unsupported flags did not match the judge; the pass added latency and cost.",
+      "limitations": [
+        "Ten extract errors; pre-21-Aug clip and citation bugs still apply to absolute pass rates."
+      ],
+      "supersedes": [],
+      "sources": [
+        "docs/benchmarks/claim-verify-100.md",
+        "Deep-eval:STATUS.md"
+      ]
+    },
+    {
+      "id": "vespa-prod100",
+      "title": "Vespa-only versus Toolbox on production-100",
+      "type": "retrieval",
+      "status": "diagnostic",
+      "date": "2026-08-31",
+      "sample": {
+        "n": 100,
+        "source": "Deep-eval deep_prod_100"
+      },
+      "arms": [
+        "Vespa-only hybrid Crunch",
+        "Toolbox Crunch full_v7cov_ns"
+      ],
+      "method": "Same Crunch agent; DAG antoine_xp_2_internal_hybrid_50_50_10 (lexical+semantic Vespa+RRF, no Brave). One checklist extract pass versus stored Toolbox answers.",
+      "scores": {
+        "vespa_pass": 0.892,
+        "toolbox_pass": 0.938,
+        "paired_better": 3,
+        "paired_worse": 15,
+        "paired_tie": 82,
+        "vespa_supported": 0.814,
+        "toolbox_supported": 0.863,
+        "vespa_p50_s": 16.5,
+        "toolbox_p50_s": 9.5
+      },
+      "decision": "Vespa-only drops about 5 points on ordinary production lookups versus Toolbox. Not a collapse; keep external long-tail retrieval for general traffic.",
+      "limitations": [
+        "Same-sitting checklist versus Toolbox; not versus Deep."
+      ],
+      "supersedes": [],
+      "sources": [
+        "docs/benchmarks/vespa-prod100.md",
+        "Deep-eval:SESSION.md",
+        "Deep-eval:results/bench/vespa_prod100_judge/judge/summary-g1.json"
+      ]
+    },
+    {
+      "id": "vespa-hard-20",
+      "title": "Vespa-only versus Toolbox on hard-20",
+      "type": "retrieval",
+      "status": "diagnostic",
+      "date": "2026-08-31",
+      "sample": {
+        "n": 20
+      },
+      "arms": [
+        "Vespa-only hybrid Crunch",
+        "Published Toolbox Gemini v1"
+      ],
+      "method": "Same vespa-hybrid DAG. Gemini criterion judge. Toolbox 0.863 is the published 6-hop v1 Gemini number, not a same-day v7 regrade.",
+      "scores": {
+        "vespa": 0.724,
+        "toolbox_published": 0.863,
+        "delta": -0.139,
+        "vespa_p50_s": 21.1,
+        "by_kind": {
+          "chain": [
+            0.81,
+            0.81
+          ],
+          "trap": [
+            0.94,
+            0.94
+          ],
+          "matrix": [
+            0.53,
+            0.75
+          ],
+          "numeric": [
+            0.5,
+            1.0
+          ],
+          "temporal": [
+            0.56,
+            1.0
+          ]
+        }
+      },
+      "decision": "Hard-set drop is larger than prod-100 and concentrated in matrix, numeric, and temporal items.",
+      "limitations": [
+        "Toolbox comparator is an older published grade, not a same-day paired regrade."
+      ],
+      "supersedes": [],
+      "sources": [
+        "docs/benchmarks/vespa-hard-20.md",
+        "Deep-eval:SESSION.md",
+        "Deep-eval:results/bench/vespa_hard"
+      ]
+    },
+    {
+      "id": "vespa-dsqa-898",
+      "title": "Vespa-only DeepSearchQA",
+      "type": "benchmark",
+      "status": "diagnostic",
+      "date": "2026-08-31",
+      "sample": {
+        "n": 898,
+        "attempted": 899,
+        "empty": 1
+      },
+      "arms": [
+        "Vespa-only hybrid Crunch",
+        "Toolbox dsqa900_h8"
+      ],
+      "method": "Official-style all-correct autorater (gemini-3.5-flash) on both arms in one sitting. Not the published 2.5-flash leaderboard. First 450 was an intermediate slice of the same 8-hop run.",
+      "scores": {
+        "vespa_all_correct": 0.2929,
+        "toolbox_all_correct": 0.3608,
+        "vespa_correct": 263,
+        "toolbox_correct": 324,
+        "paired_n": 897,
+        "both": 214,
+        "vespa_only": 49,
+        "toolbox_only": 110,
+        "neither": 524,
+        "mcnemar_chi2": 22.6,
+        "first450_vespa": 0.313,
+        "first450_toolbox": 0.374,
+        "vespa_p50_s": 25.1,
+        "toolbox_p50_s": 30.1,
+        "vespa_cost_per_1000": 71.7,
+        "toolbox_cost_per_1000": 46.06
+      },
+      "decision": "Vespa-only is about 7 points worse, faster, and more expensive (longer snippets). Use as the vespa-versus-toolbox DSQA result; do not quote against the public 36.2% board.",
+      "limitations": [
+        "Replacement Gemini 3.5 Flash autorater; dsqa_530 returned empty.",
+        "Cost gap is mostly extra Gemini input tokens from uncapped Vespa chunks."
+      ],
+      "supersedes": [],
+      "sources": [
+        "docs/benchmarks/vespa-dsqa-898.md",
+        "Deep-eval:SESSION.md",
+        "Deep-eval:results/bench/vespa_dsqa900"
+      ]
+    },
+    {
+      "id": "vespa-dsqa-450-h16",
+      "title": "Vespa-only DeepSearchQA at 16 hops",
+      "type": "stopping",
+      "status": "diagnostic",
+      "date": "2026-08-31",
+      "sample": {
+        "n": 450
+      },
+      "arms": [
+        "Vespa 16 hops / 240s",
+        "Vespa 8 hops",
+        "Toolbox 8 hops"
+      ],
+      "method": "First 450 DSQA questions, vespa-hybrid, same gemini-3.5-flash autorater.",
+      "scores": {
+        "vespa_16h": 0.322,
+        "vespa_8h": 0.313,
+        "toolbox_8h": 0.374,
+        "correct_16h": 145,
+        "vs_vespa_8h_better": 32,
+        "vs_vespa_8h_worse": 28,
+        "forced_writes_16h": 19,
+        "forced_writes_8h": 122,
+        "mean_hops_16h": 7.0,
+        "hit_16": 19,
+        "cost_per_1000_16h": 87.33,
+        "cost_per_1000_8h": 71.32
+      },
+      "decision": "Extra hops mostly stopped forced writes. Quality +0.9 vs vespa 8-hop is noise and does not close the Toolbox gap.",
+      "limitations": [
+        "450-row slice, not the full 896/898."
+      ],
+      "supersedes": [],
+      "sources": [
+        "docs/benchmarks/vespa-dsqa-450-h16.md",
+        "Deep-eval:SESSION.md",
+        "Deep-eval:results/bench/vespa_dsqa450_h16"
+      ]
+    },
+    {
+      "id": "dsqa-16hop-50",
+      "title": "Toolbox DeepSearchQA at 16 hops",
+      "type": "stopping",
+      "status": "diagnostic",
+      "date": "2026-08-31",
+      "sample": {
+        "n": 50
+      },
+      "arms": [
+        "Toolbox 16 hops",
+        "Toolbox 8 hops"
+      ],
+      "method": "Only 16-hop Toolbox Crunch run. Same 50 questions at 8 hops for the paired comparison.",
+      "scores": {
+        "h16_all_correct": 0.46,
+        "h16_correct": 23,
+        "h8_all_correct": 0.4,
+        "h8_correct": 20,
+        "f1_h16": 0.633,
+        "f1_h8": 0.607,
+        "forced_writes_h16": 1,
+        "forced_writes_h8": 10,
+        "mean_hops_h16": 6.2,
+        "used_all_16": 1
+      },
+      "decision": "16 hops raised all-correct 40%\u219246% on n=50 and almost removed forced writes. CI is wide; no full-900 16-hop Toolbox run.",
+      "limitations": [
+        "n=50; CI about \u00b114 points. Not vespa-only."
+      ],
+      "supersedes": [],
+      "sources": [
+        "docs/benchmarks/dsqa-16hop-50.md",
+        "Deep-eval:SESSION.md",
+        "Deep-eval:results/bench/dsqa50_h16"
+      ]
+    },
+    {
+      "id": "vespa-prod1000",
+      "title": "Vespa-only production-1000",
+      "type": "benchmark",
+      "status": "blocked",
+      "date": "2026-08-31",
+      "sample": {
+        "target_n": 1000,
+        "source": "Deep-eval data/deep_prod_1000.json"
+      },
+      "arms": [
+        "Vespa-only hybrid Crunch"
+      ],
+      "method": "Planned same flags as vespa-prod100 on a 1,000-row last-30-days sample.",
+      "scores": {},
+      "decision": "Not run; Infisical/Columbus died before start. Do not invent a score.",
+      "limitations": [
+        "No generation or judge artifacts."
+      ],
+      "supersedes": [],
+      "sources": [
+        "docs/benchmarks/vespa-prod1000.md",
+        "Deep-eval:SESSION.md"
+      ]
+    },
+    {
+      "id": "judge-max-tokens-180",
+      "title": "Judge max_tokens=180 clip",
+      "type": "measurement",
+      "status": "invalid",
+      "date": "2026-09-02",
+      "sample": {
+        "campaign": "enterprise-toolbox-100",
+        "regraded": true
+      },
+      "arms": [
+        "Anthropic max_tokens=180",
+        "max_tokens=1024"
+      ],
+      "method": "Caught mid-run on the Sapiom-100 pairwise judge: 180 completion tokens cut the judge JSON and produced fake ties. Raised to 1024 and those rows were re-graded.",
+      "scores": {},
+      "decision": "Do not use any mid-run ties from the 180-token clip. The published Sapiom-100 scores are the regrade.",
+      "limitations": [
+        "No separate scoreboard for the clipped pass; it was discarded.",
+        "Primary numbers for the campaign live on enterprise-toolbox-100."
+      ],
+      "supersedes": [],
+      "sources": [
+        "docs/benchmarks/judge-max-tokens-180.md",
+        "crunch-public:evals/sapiom-deep-100-20260902/RESULTS.md"
+      ]
+    },
+    {
+      "id": "model-eval-200",
+      "title": "Five-model generation bake-off on filtered-200",
+      "type": "model_selection",
+      "status": "incomplete",
+      "date": "2026-09-03",
+      "sample": {
+        "n": 200,
+        "source": "filtered-production-200 questions"
+      },
+      "arms": [
+        "gemini-direct 200/200 ok",
+        "glm-baseten 199/200 ok",
+        "luna-safe 192/200 ok",
+        "openrouter gemini/glm/qwen/deepseek incomplete or failed"
+      ],
+      "method": "Live Crunch generation through local Toolbox on the pinned filtered-200 sample. Used to release Toolbox before firsthop-ab-100. No checklist or pairwise judge file exists.",
+      "scores": {
+        "gemini_direct_ok": 200,
+        "glm_baseten_ok": 199,
+        "luna_safe_ok": 192,
+        "quality_judge": null
+      },
+      "decision": "Do not use as a quality result. Operational completion only.",
+      "limitations": [
+        "No quality scores. Several OpenRouter arms failed or stopped early."
+      ],
+      "supersedes": [],
+      "sources": [
+        "docs/benchmarks/model-eval-200.md",
+        "local:/Users/shaurya/tmp/crunch-model-eval-200-20260903"
       ]
     }
   ]
