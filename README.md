@@ -7,7 +7,7 @@ Private, privacy-preserving record of Crunch design decisions and evaluations. R
 | Scope | n | Crunch result | Comparator |
 |---|---:|---:|---|
 | DeepSearchQA | 896 | **36.2% all-correct** | Deep 8.4% |
-| Production sourcedAnswer | 687 | **84.3% decided** (578–108–1) | Frozen Linkup Deep |
+| [Production sourcedAnswer](docs/benchmarks/production-2000.md) | 687 | **84.3% decided** (578–108–1) | Frozen Linkup Deep |
 | Production searchResults | 857 | **72.8% decided** (622–233–2) | Frozen Linkup Deep |
 | Structured direct projection | 300 | **63.8% decided** (139–79–82) | Current Crunch write→project |
 | Filtered production | 200 | **67.7% decided**; 0 observed domain violations | Live Linkup Deep |
