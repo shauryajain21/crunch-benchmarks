@@ -115,12 +115,6 @@ These are not restated in the evaluation-backed choices above.
 
 Important choices that are **not** locked. Numbered eval-backed choices and remaining principles above stay as shipped.
 
-**Model.** Gemini 3.7 Flash is current, not locked. A 200-question bakeoff (Gemini, Luna, GLM, DeepSeek) is in progress. Qwen 3.7 Flash is unavailable (no such hosted model / no Baseten API). Grok 4.1 Fast is deprecated on OpenRouter.
-
-**Forced first-hop count.** Shipped default is 3 parallel searches and no answer on turn 1. No clean 0 vs 1 vs 3 A/B yet; a 100-query A/B is queued behind the bakeoff.
-
-**Structured generation path.** Shipping is write-then-project. Direct evidence→schema beat write-first on n=300 (139–79–82, 63.8% of decided) but was not adopted. Broad schema-guided retrieval is unproven.
-
 **Citation entailment.** We repair missing `[n]` and drop invented URLs. We do not check that the cited snippet actually supports the claim. This is the main leftover sourced-answer failure mode.
 
 **URL scrubber false positives.** Legitimate requested links are sometimes removed because of redirect, slash, or path mismatch.
