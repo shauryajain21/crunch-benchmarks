@@ -85,6 +85,7 @@ Detailed component decisions will be added only after this overall design is rev
 
 ### 5. Use the v7 answer contract
 
+- The v7 answer contract tells the model to directly answer every requested part, resolve conflicting evidence, show calculations, clearly state missing information, and cite each factual claim.
 - The v7 prompt makes the answer requirements explicit before final writing.
 - On 24 difficult questions, missing requirements fell from 25.8% to 16.7%. The full n=100 gain was only +0.012 ± 0.041.
 - We adopted v7 for fewer omissions and its clearer mechanism, not as a large aggregate quality win.
