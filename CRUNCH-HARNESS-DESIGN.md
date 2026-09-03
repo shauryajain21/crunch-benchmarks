@@ -1,13 +1,13 @@
 # Crunch runtime design
 
-Crunch turns a question into a grounded, typed API response by running one fast model inside a small, controlled search loop.
+Crunch turns a question into a grounded, typed API response by running one fast reasoning model inside a small, controlled search loop.
 
-`question → one fast model → search/fetch loop → answer → coverage/citation cleanup → API output`
+`question → one fast reasoning model → search/fetch loop → answer → coverage/citation cleanup → API output`
 
 ## Overall design
 
 The request enters a runtime harness that reads the question, requested output shape, and caller filters.
-The harness starts one model and requires it to search before answering.
+The harness starts one fast reasoning model and requires it to search before answering.
 The model can rewrite the query, inspect snippets, fetch selected pages, and repeat when evidence is weak.
 It stops when it has enough support, then writes the answer from the evidence it gathered.
 The harness checks coverage, repairs citation numbering and placement, rejects unsupported URLs, and shapes the final API response.
@@ -32,38 +32,13 @@ The model and retrieval providers sit behind stable interfaces, so either can ch
 
 Retrieval supplies evidence; it does not decide when the whole task is complete or define the final API response.
 
-## Why it is built this way
-
-- **Own the loop.** Crunch controls tool use, budgets, failures, and stopping instead of delegating those choices to a nested agent framework.
-- **Force grounding before answering.** A required first search makes retrieved evidence the starting point, not an afterthought.
-- **Stop adaptively.** Easy questions can finish quickly; harder questions can rewrite, search again, or fetch a source.
-- **Use snippets first and fetch selectively.** Snippets are often enough to choose or reject a result, while full-page reads are reserved for pages that matter.
-- **Let the same model gather and write.** It keeps the question, query choices, evidence, and uncertainty in one context.
-- **Post-process citations and output shapes.** Deterministic code enforces contracts that prompts alone cannot guarantee.
-
-## Anchor measurements
-
-- On production `sourcedAnswer` traffic, Crunch won **84.3% of decided comparisons** against frozen Deep, supporting the end-to-end loop design.
-- A separate Pro writer scored **0.750 versus 0.746** for the loop writer but used **4.8× the model cost**, supporting one model for gathering and writing.
-- Automatically scraping top pages increased median latency from **9.5s to 30.5s with no quality gain**, supporting snippets-first, model-selected fetch.
-
-## Current boundaries and open questions
-
-- General web retrieval and bounded enterprise retrieval need different validation; one backend is not assumed to fit all traffic.
-- Structured output works through the same evidence loop, but projection quality across new schema families still needs testing.
-- Filtered search and empty-result behavior must improve without weakening caller domain and date constraints.
-- The best trigger for eager fetching on analytical or multi-part questions is still open.
-- Cheaper models are candidates only if they preserve first-search compliance, answer quality, and latency.
-
-Detailed component decisions will be added only after this overall design is reviewed.
-
 ## Design choices shaped by evaluation
 
 ### 1. Own the agent loop
 
 - The harness controls model turns, tool calls, budgets, failures, and stopping.
 - On production `sourcedAnswer` traffic, n=687 produced 578 Crunch wins, 108 losses, and 1 tie against frozen Deep.
-- This supports the whole Crunch system, but does not isolate loop ownership. It is end-to-end support for keeping the loop in the harness.
+- This supports the whole Crunch system, but does not isolate loop ownership.
 
 ### 2. Stop adaptively
 
@@ -86,7 +61,6 @@ Detailed component decisions will be added only after this overall design is rev
 ### 5. Use the v7 answer contract
 
 - The v7 answer contract tells the model to directly answer every requested part, resolve conflicting evidence, show calculations, clearly state missing information, and cite each factual claim.
-- The v7 prompt makes the answer requirements explicit before final writing.
 - On 24 difficult questions, missing requirements fell from 25.8% to 16.7%. The full n=100 gain was only +0.012 ± 0.041.
 - We adopted v7 for fewer omissions and its clearer mechanism, not as a large aggregate quality win.
 
@@ -119,3 +93,19 @@ Detailed component decisions will be added only after this overall design is rev
 - The harness applies caller domain and date filters as immutable constraints outside model-written queries.
 - On n=200 filtered requests, Crunch returned 0 domain-violating URLs versus 33 for Deep.
 - Crunch `searchResults` recall and reliability were worse, so the filter design stayed but the release was not approved.
+
+## Remaining principles
+
+These are not restated in the evaluation-backed choices above.
+
+- **One fast reasoning model.** The same model gathers evidence and writes the answer, keeping the question, queries, evidence, and uncertainty in one context. A separate Pro writer scored 0.750 versus 0.746 for the loop writer at 4.8× model cost.
+- **Row-level failures.** One bad row must not stop a campaign; rows are isolated and resumable.
+- **Blind paired judging.** Compare typed outputs with swaps and ties; a margin smaller than order instability is a tie.
+
+## Current boundaries and open questions
+
+- General web retrieval and bounded enterprise retrieval need different validation; one backend is not assumed to fit all traffic.
+- Structured output works through the same evidence loop, but projection quality across new schema families still needs testing.
+- Filtered search and empty-result behavior must improve without weakening caller domain and date constraints.
+- The best trigger for eager fetching on analytical or multi-part questions is still open.
+- Cheaper models are candidates only if they preserve first-search compliance, answer quality, and latency.
