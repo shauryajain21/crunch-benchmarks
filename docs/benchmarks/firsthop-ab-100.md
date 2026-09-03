@@ -60,7 +60,7 @@ Latency was a tie at the median. Free used fewer searches and a slightly faster 
 
 ## Safety
 
-One arm at a time, 8 question workers, 24 in-flight `WebSearchTool` RPCs, after the five-model bakeoff released Toolbox. No Searcher 429/503. Search transport errors 0. Rolling search p90 stayed ~1.4s. Fetch p90 was 14–28s and was not treated as a Vespa stop. No Vespa/config writes.
+One arm at a time, 8 question workers, 24 in-flight `WebSearchTool` RPCs. No Searcher 429/503. Search transport errors 0. Rolling search p90 stayed ~1.4s. Fetch p90 was 14–28s and was not treated as a Vespa stop. No Vespa/config writes.
 
 ## Judge notes
 

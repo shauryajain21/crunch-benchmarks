@@ -67,4 +67,3 @@ One page per catalog id. Shared campaigns keep a single file. Raw prompts, answe
 | [`dsqa-16hop-50`](dsqa-16hop-50.md) | 50 | diagnostic | 16 hops raised all-correct 40%→46% on n=50 and almost removed forced writes. CI is wide… |
 | [`vespa-prod1000`](vespa-prod1000.md) | target 1000 | blocked | Not run; Infisical/Columbus died before start. Do not invent a score. |
 | [`judge-max-tokens-180`](judge-max-tokens-180.md) | campaign=enterprise-toolbox-100, regraded=True | invalid | Do not use any mid-run ties from the 180-token clip. The published Sapiom-100 scores ar… |
-| [`model-eval-200`](model-eval-200.md) | 200 | incomplete | Do not use as a quality result. Operational completion only. |
