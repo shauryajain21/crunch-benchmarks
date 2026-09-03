@@ -1,47 +1,114 @@
-# Decision archive
+This is the Crunch design-decision record (same content as [`CRUNCH-HARNESS-DESIGN.md`](../CRUNCH-HARNESS-DESIGN.md)).
 
-This is the durable design record. Evidence IDs resolve to [`benchmarks.json`](../benchmarks.json). “Adopted” means supported for the stated scope, not universally optimal.
+# Crunch runtime design
 
-## Agent loop and stopping
+Crunch turns a question into a grounded, typed API response by running one fast reasoning model inside a small, controlled search loop.
 
-- **Own the loop — adopted.** A reasoning model over the internal index made latency, retrieval, and output shaping controllable. Vendor replay motivated the work; `model-bakeoff-20`, `prod100-corrected`.
-- **Gemini 3.7 Flash, low effort, no deadline — adopted.** It was the only tested model that cleared the latency and quality envelope. Luna is the runner-up when latency is relaxed. `model-bakeoff-20`, `model-hunt-25`.
-- **Forced first search with parallel queries — adopted.** It prevents memory-only answers and exploits parallel tool calls. Qwen arms that rejected required tools were not configuration-equivalent. `model-hunt-25`.
-- **Model-decided stopping — adopted.** One or two forced gather hops both underperformed the adaptive path. `forced-gather-hops-40`.
-- **Guess-and-verify rather than mandatory sequencing — adopted with caveat.** It saves a hop when an intermediate is in model prior; at least one non-presupposing query is still desirable. `chain-prompt-10`.
-- **Separate synthesis model — rejected.** Pro added negligible quality at 4.8× model cost; Sonnet was worse at 16×. `synthesis-writers-24`.
-- **Coverage pass — adopted with bounded claim.** It lowers omission and unsourced rates, but its headline gain on agentic prompts included citation laundering. `coverage-pass-100`.
+`question → one fast reasoning model → search/fetch loop → answer → coverage/citation cleanup → API output`
 
-## Retrieval, filtering, and fetches
+## Overall design
 
-- **Toolbox/Columbus retrieval — adopted for general Crunch.** Cap each search at 10 results and fetched text at 12k characters. `toolbox-caps-25`.
-- **External long-tail retrieval — retained for general traffic.** Vespa-only scored 20.8% on a tiny general-web slice, although it works extremely well on the enterprise cohort. `vespa-general-25`, `enterprise-vespa-1000`.
-- **Brave as a second index — rejected.** It added candidates but not evidence under a fixed read budget. `brave-second-index-100`.
-- **Hard user domain scope — adopted.** Explicit domain filters beat broad hints; model-written dorks may not broaden the caller's allowlist. `domain-scope-108`, `filtered-production-200`.
-- **Defensive output URL filtering — adopted.** Final filtered Crunch had zero observed domain violations. Date correctness remains unobservable in returned documents. `filtered-production-200`.
-- **Automatic scrape-top — rejected.** It consumed most latency and did not improve the powered n=100 result. `scrape-top-100`.
-- **Conservative fetch default — adopted.** Prompt and tool description must agree. Analytical/matrix tasks may use the more eager rule. `fetch-rule-100`.
-- **Host-level fetch guard — adopted.** The model may infer a new path only on a seen host; arbitrary domains remain blocked. `host-fetch-guard`.
-- **Deterministic auto-read ranking — rejected.** It selected more plausible pages but did not improve quality. `autoread-ranking-103`.
+The request enters a runtime harness that reads the question, requested output shape, and caller filters.
+The harness starts one fast reasoning model and requires it to search before answering.
+The model can rewrite the query, inspect snippets, fetch selected pages, and repeat when evidence is weak.
+It stops when it has enough support, then writes the answer from the evidence it gathered.
+The harness checks coverage, repairs citation numbering and placement, rejects unsupported URLs, and shapes the final API response.
 
-## Prompts, citations, and answers
+The same flow supports prose answers, ranked search results, and structured output.
+The model and retrieval providers sit behind stable interfaces, so either can change without changing the response contract.
 
-- **v7 answer contract — adopted.** Dated verdicts, explicit negatives, source adjudication, arithmetic, and complete entity×attribute coverage reduce omissions. Its pass-rate delta alone is not proven. `prompt-v6-v7`.
-- **Citation IDs must index emitted sources — adopted invariant.** Renumbering fixed a 0.179 false quality loss with zero regressions. `citation-renumber-rescore`.
-- **Never trust raw URLs from generation — adopted invariant.** Strip unretrieved URLs, allowlist sources, and repair citation placement before return. `host-fetch-guard`, `prod100-corrected`.
+## What the harness owns
 
-## Output modes and schemas
+- Request parsing, caller filters, output mode, and schema.
+- The model/tool loop, tool limits, evidence IDs, context limits, and stopping rules.
+- The rule that evidence must be gathered before an answer is accepted.
+- Coverage checks, citation cleanup, URL safety, schema validation, and typed success or failure.
+- Final response shaping for each API output mode.
 
-- **`searchResults` uses model ranking — adopted.** Concatenation was not ranking; raw reranker scores were incomparable across rewrites. `search-rank-rff-50`, `search-max-score-364`, `search-model-rerank-364`.
-- **`searchResults` ends with `done` — adopted.** Writing prose then discarding it added latency without quality. `search-split-finish-200`.
-- **Structured output is schema-validated — adopted.** Include the question, allow schema-valid nulls, coerce only where the schema permits, and retry validation. `structured-projection-50`, `structured-projector-rescore-319`.
-- **Mechanical abstention — rejected.** Matching the comparator's null rate lowered quality. `structured-abstention-194`.
-- **Broad schema guidance during gathering — rejected alone.** It filled more fields but tied on correctness and added latency. `schema-guidance-40`.
-- **Ranked evidence projected directly to schema — adopted as the next architecture.** The 300-row confirmation beat write→project, mainly by preserving requested URLs. Broad guidance versus unguided direct is still unproven, so production work should narrow the checklist. `schema-factorial-40`, `schema-guided-direct-300`.
+## What retrieval owns
 
-## Reliability and judging
+- Searching indexes or the web for candidate documents.
+- Returning snippets, document metadata, and stable source URLs.
+- Fetching page text when the model selects a result to read.
+- Retrieval ranking and provider-specific behavior behind the search/fetch interface.
 
-- **Rows are failure-isolated and resumable — adopted.** A finish-reason-only response killed an early 2,000-row run; one bad row must not terminate a campaign. `runner-row1520-crash`.
-- **Success follows the typed contract, not prose presence — adopted.** Answer-derived status falsely marked 845 split-finish rows failed. `runner-status-bug`.
-- **No asymmetric answer clipping — adopted invariant.** The 1,400- and 1,800-character clips generated false deltas. `judge-clip-1400`, `production-850-clip1800`.
-- **Blind, paired, typed-output judges with swaps and ties — adopted.** A margin smaller than order instability is a tie. Exact schema and filter constraints must be judge-visible. See [`MEASUREMENT.md`](MEASUREMENT.md).
+Retrieval supplies evidence; it does not decide when the whole task is complete or define the final API response.
+
+## Design choices shaped by evaluation
+
+### 1. Stop adaptively
+
+- The model can stop after enough evidence or continue with another search or fetch.
+- Forced one-hop scored 62.5% and forced two-hop scored 65.0%, each on n=40 against Deep.
+- The roughly 76% figure comes from the separate n=200 split-finish `searchResults` arm against Deep, not a directly paired three-arm test. We therefore avoid fixed hop counts.
+
+### 2. Use snippets first
+
+- Search returns snippets first; the model fetches full pages only when needed.
+- On n=100, automatic scraping scored 0.930 at 30.5s p50. No automatic scraping scored 0.940 at 9.5s.
+- Scraping added large latency without quality gain, so automatic top-page scraping was disabled.
+
+### 3. Return ten results per search
+
+- Each search returns at most ten results, reducing model context and retrieval cost.
+- On n=25, ten versus twenty results changed quality by +0.015 ± 0.086.
+- The quality difference was a null, so the lower-cost, smaller-context limit stayed at ten.
+
+### 4. Use the v7 answer contract
+
+- The v7 answer contract tells the model to directly answer every requested part, resolve conflicting evidence, show calculations, clearly state missing information, and cite each factual claim.
+- On 24 difficult questions, missing requirements fell from 25.8% to 16.7%. The full n=100 gain was only +0.012 ± 0.041.
+- We adopted v7 for fewer omissions and its clearer mechanism, not as a large aggregate quality win.
+
+### 5. Run a coverage pass
+
+- After writing, the harness checks whether requested parts are missing and fills supported gaps.
+- On n=100, score rose from 0.911 to 0.930; the benefit was concentrated in agentic tasks.
+- We kept the pass as an omission safeguard, not as a broad lookup-quality claim.
+
+### 6. Repair and renumber citations
+
+- Deterministic cleanup maps citations to the final emitted source list and renumbers them.
+- Regrading the same stored answers raised score from 0.571 to 0.748; unsourced claims fell from 23.8% to 6.1%.
+- Because the answers did not change, this showed a plumbing failure. Citation repair became part of finalization.
+
+### 7. Model-rank `searchResults`
+
+- The model chooses across result lists from rewritten subqueries instead of comparing raw cross-query scores.
+- On the same n=364 benchmark slice, score-max reached 45.2% against Deep and model reranking reached 76.1% against Deep.
+- These are separate comparisons to Deep, not necessarily a direct reranker-versus-score judge. The score-scale failure still justified model ranking.
+
+### 8. End `searchResults` with `done`
+
+- Once ranking is complete, the model calls `done` instead of writing prose that the API discards.
+- On n=200, quality was unchanged by the paired sign test (p=0.67), while latency fell from 44.1s to 8.4s.
+- The large latency gain with no measured quality loss made `done` the finish contract.
+
+### 9. Keep filters outside the model
+
+- The harness applies caller domain and date filters as immutable constraints outside model-written queries.
+- On n=200 filtered requests, Crunch returned 0 domain-violating URLs versus 33 for Deep.
+- Crunch `searchResults` recall and reliability were worse, so the filter design stayed but the release was not approved.
+
+### 10. Own the agent loop
+
+- The harness controls model turns, tool calls, budgets, failures, and stopping.
+- On production `sourcedAnswer` traffic, n=687 produced 578 Crunch wins, 108 losses, and 1 tie against frozen Deep ([`production-2000-sourced`](benchmarks/production-2000.md)).
+- This supports the whole Crunch system, but does not isolate loop ownership.
+
+## Remaining principles
+
+These are not restated in the evaluation-backed choices above.
+
+- **One fast reasoning model.** The same model gathers evidence and writes the answer, keeping the question, queries, evidence, and uncertainty in one context. A separate Pro writer scored 0.750 versus 0.746 for the loop writer at 4.8× model cost.
+- **Row-level failures.** One bad row must not stop a campaign; rows are isolated and resumable.
+- **Blind paired judging.** Compare typed outputs with swaps and ties; a margin smaller than order instability is a tie.
+- **Force grounding first.** First turn: `tool_choice=required`, at least 3 distinct parallel searches, no final answer on that turn.
+  - Prevents memory-only answers; first-hop latency stays near one search. Observed shipped envelope ~2.4 hops / 3.9 searches on production-100.
+  - Related but different from first-hop count: one literal query n=40 scored 34.4%; forced 1-hop/2-hop gather n=40 scored 62.5%/65.0% (those force stopping, not first-hop count).
+- **Guess-and-verify on chains.** On multi-hop questions the model often guesses the intermediate entity and fires an open check in the same turn.
+  - Eval: 10 chain questions, stock prompt vs extra “do this in order” instruction, both 10/10, 0–0–10, same ~2.2 hops.
+  - Decision: keep stock guess-and-verify; extra chain wording did not help. Small n; entities were likely known from pretraining.
+- **Host allowlist for fetch.** A host must first appear in search results; another path on that host is allowed. Reject any-host and exact-URL-only.
+  - Eval: ~103 domain-scoped questions, exact-URL vs host allowlist (rank_guard). Exact-URL refused 14 legitimate fetches. Host allowlist allowed 15 inferred-path fetches; 14 returned text and were cited. Quality −0.010 ± 0.049 (null).
+  - Shipped because it unblocked real official-page fetches with no measured quality cost.

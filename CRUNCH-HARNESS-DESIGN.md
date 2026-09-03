@@ -1,3 +1,5 @@
+This is the Crunch design-decision record (also at [`docs/DECISIONS.md`](docs/DECISIONS.md)).
+
 # Crunch runtime design
 
 Crunch turns a question into a grounded, typed API response by running one fast reasoning model inside a small, controlled search loop.

@@ -2,7 +2,8 @@
 
 Compact current-state architecture. Evidence IDs resolve to
 [`benchmarks.json`](benchmarks.json). See
-[`docs/DECISIONS.md`](docs/DECISIONS.md) and
+[`docs/DECISIONS.md`](docs/DECISIONS.md) for the current decision record,
+[`docs/DECISIONS-ARCHIVE.md`](docs/DECISIONS-ARCHIVE.md) and
 [`docs/EXPERIMENTS.md`](docs/EXPERIMENTS.md) for exhaustive history.
 
 ## Model
