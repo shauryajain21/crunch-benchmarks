@@ -101,6 +101,15 @@ These are not restated in the evaluation-backed choices above.
 - **One fast reasoning model.** The same model gathers evidence and writes the answer, keeping the question, queries, evidence, and uncertainty in one context. A separate Pro writer scored 0.750 versus 0.746 for the loop writer at 4.8× model cost.
 - **Row-level failures.** One bad row must not stop a campaign; rows are isolated and resumable.
 - **Blind paired judging.** Compare typed outputs with swaps and ties; a margin smaller than order instability is a tie.
+- **Force grounding first.** First turn: `tool_choice=required`, at least 3 distinct parallel searches, no final answer on that turn.
+  - Prevents memory-only answers; first-hop latency stays near one search. Observed shipped envelope ~2.4 hops / 3.9 searches on production-100.
+  - No clean 0 vs 1 vs 3 first-hop A/B yet (a 100-query A/B is queued). Related but different: one literal query n=40 scored 34.4%; forced 1-hop/2-hop gather n=40 scored 62.5%/65.0% (those force stopping, not first-hop count).
+- **Guess-and-verify on chains.** On multi-hop questions the model often guesses the intermediate entity and fires an open check in the same turn.
+  - Eval: 10 chain questions, stock prompt vs extra “do this in order” instruction, both 10/10, 0–0–10, same ~2.2 hops.
+  - Decision: keep stock guess-and-verify; extra chain wording did not help. Small n; entities were likely known from pretraining.
+- **Host allowlist for fetch.** A host must first appear in search results; another path on that host is allowed. Reject any-host and exact-URL-only.
+  - Eval: ~103 domain-scoped questions, exact-URL vs host allowlist (rank_guard). Exact-URL refused 14 legitimate fetches. Host allowlist allowed 15 inferred-path fetches; 14 returned text and were cited. Quality −0.010 ± 0.049 (null).
+  - Shipped because it unblocked real official-page fetches with no measured quality cost.
 
 ## Current boundaries and open questions
 
