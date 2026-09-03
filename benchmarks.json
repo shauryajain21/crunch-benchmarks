@@ -1729,6 +1729,72 @@
       "sources": [
         "crunch-public@3f00dd1:evals/schema-ab-300-20260903/RESULTS.md"
       ]
+    },
+    {
+      "id": "firsthop-ab-100",
+      "title": "Forced first-hop versus free first turn",
+      "type": "stopping",
+      "status": "diagnostic",
+      "date": "2026-09-03",
+      "sample": {
+        "n": 100,
+        "mode": "sourcedAnswer",
+        "source": "Deep-eval deep_prod_100"
+      },
+      "arms": [
+        "shipped min_first_searches=3, tool_choice=required, no first-turn answer",
+        "free min_first_searches=0, tool_choice=auto, first-turn answer allowed"
+      ],
+      "method": "Sequential live arms on the same 100 IDs; Gemini 3.7 Flash via GEMINI_API_KEY; Toolbox; v7 plus coverage. Blind Sonnet 4.5 typed pairwise, no answer clip, 40 swaps. Failures included.",
+      "scores": {
+        "wins": 41,
+        "losses": 24,
+        "ties": 35,
+        "decided_win_rate": 0.6308,
+        "row_win_rate": 0.41,
+        "ci95": [
+          0.5092,
+          0.7377
+        ],
+        "swap_n": 40,
+        "swap_flips": 16,
+        "swap_flip_rate": 0.4,
+        "swap_stable": {
+          "shipped": 15,
+          "free": 3,
+          "tie": 6,
+          "flip": 16
+        },
+        "latency_p50_s": {
+          "shipped": 10.48,
+          "free": 10.55
+        },
+        "latency_p90_s": {
+          "shipped": 19.56,
+          "free": 17.04
+        },
+        "mean_first_turn_searches": {
+          "shipped": 3.31,
+          "free": 2.03
+        },
+        "answered_on_first_turn": {
+          "shipped": 0,
+          "free": 0
+        }
+      },
+      "decision": "Keep the shipped first-hop rule. The quality lean does not beat 40% swap flips, and median latency was a tie.",
+      "limitations": [
+        "crunch.py has no first-hop CLI flag; the free arm also replaced the stock first-turn force bullet because min_first=0 still forbids a first-turn answer.",
+        "Never-answer-from-memory stayed on, so the free arm still never answered on turn 1.",
+        "One grader parse miss recorded as a tie. CI just excludes 50%.",
+        "Working-tree crunch.py also had unused structured split-finish dirt; sourcedAnswer used the stock loop plus the first-hop isolation."
+      ],
+      "supersedes": [],
+      "sources": [
+        "docs/benchmarks/firsthop-ab-100.md",
+        "local:/Users/shaurya/tmp/crunch-firsthop-ab-100-20260903",
+        "crunch-public@478a4ae"
+      ]
     }
   ]
 }

@@ -40,3 +40,4 @@
 - Broad schema guidance improved completion but not judged correctness.
 - A four-arm holdout isolated direct ranked-evidence projection as the likely lever.
 - Commit `3f00dd1` confirmed guided-direct over current write→project on 300 rows (139–79–82); the gain was schema-family dependent and cost more input tokens.
+- A 100-row first-hop A/B (`478a4ae`) isolated `min_first_searches=3` versus a free first turn: 41–24–35 for the force, but 40% swap flips, so the shipped rule was left unchanged.

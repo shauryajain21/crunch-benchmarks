@@ -60,6 +60,7 @@ The machine-readable record is [`benchmarks.json`](../benchmarks.json). Scores b
 | 2026-09-03 | `schema-guidance-40` | structured | **rejected** | Do not ship broad guidance alone: completion rose but correctness tied and latency increased. |
 | 2026-09-03 | `schema-factorial-40` | structured | **diagnostic** | Direct ranked-evidence projection is promising; broad guidance itself remains unproven. |
 | 2026-09-03 | `schema-guided-direct-300` | structured | **adopted** | Adopt direct ranked-evidence projection as the established lever; narrow guidance before production rollout. |
+| 2026-09-03 | `firsthop-ab-100` | stopping | **diagnostic** | Forced 3-search first hop 41–24–35 vs free first turn; 40% swap flips, no shipped change. |
 
 ## Scope rules
 
