@@ -59,6 +59,7 @@ One page per catalog id. Shared campaigns keep a single file. Raw prompts, answe
 | [`schema-factorial-40`](schema-factorial-40.md) | 40 | diagnostic | Direct ranked-evidence projection is promising; broad guidance itself remains unproven. |
 | [`schema-guided-direct-300`](schema-guided-direct-300.md) | 300 | adopted | Adopt direct ranked-evidence projection as the established lever; narrow guidance befor… |
 | [`firsthop-ab-100`](firsthop-ab-100.md) | 100 (mode=sourcedAnswer) | diagnostic | Keep the shipped first-hop rule. The quality lean does not beat 40% swap flips, and med… |
+| [`model-eval-200`](model-eval-200.md) | 200 | diagnostic | Keep Gemini 3.7 Flash. GLM 117–53–30; DeepSeek 66–106–28 after resume to 151/200. Swap … |
 | [`claim-verify-100`](claim-verify-100.md) | 100 (graded_n=90) | rejected | Leave verify off. Lexical unsupported flags did not match the judge; the pass added lat… |
 | [`vespa-prod100`](vespa-prod100.md) | 100 | diagnostic | Vespa-only drops about 5 points on ordinary production lookups versus Toolbox. Not a co… |
 | [`vespa-hard-20`](vespa-hard-20.md) | 20 | diagnostic | Hard-set drop is larger than prod-100 and concentrated in matrix, numeric, and temporal… |

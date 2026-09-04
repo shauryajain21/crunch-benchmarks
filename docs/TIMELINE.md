@@ -45,3 +45,4 @@
 - A four-arm holdout isolated direct ranked-evidence projection as the likely lever.
 - Commit `3f00dd1` confirmed guided-direct over current write→project on 300 rows (139–79–82); the gain was schema-family dependent and cost more input tokens.
 - A 100-row first-hop A/B (`478a4ae`) isolated `min_first_searches=3` versus a free first turn: 41–24–35 for the force, but 40% swap flips, so the shipped rule was left unchanged.
+- A 200-row filtered model bake-off judged GLM, Luna, and DeepSeek against Gemini 3.7 Flash. GLM won 117–53–30 but 47.5% swap flips and 2.7× p50 blocked a switch. DeepSeek was resumed to 151/200 and still lost 66–106–28 once failures were included.

@@ -1,6 +1,6 @@
 # Crunch benchmarks
 
-[Major decisions for Crunch](CRUNCH-HARNESS-DESIGN.md)
+[Why Crunch does what it does](CRUNCH-HARNESS-DESIGN.md) — each harness choice, the eval behind it, what was tried and rejected, and known limits.
 
 [Exploring Deep](docs/EXPLORING-DEEP.md) — where production Deep fails customers, why the harness (not the model) is the cause, and whether the new harness holds up on Vespa alone.
 

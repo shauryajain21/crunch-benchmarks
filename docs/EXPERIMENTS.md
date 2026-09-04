@@ -69,6 +69,7 @@ The machine-readable record is [`benchmarks.json`](../benchmarks.json). Scores b
 | 2026-09-03 | `schema-factorial-40` | structured | **diagnostic** | Direct ranked-evidence projection is promising; broad guidance itself remains unproven. |
 | 2026-09-03 | `schema-guided-direct-300` | structured | **adopted** | Adopt direct ranked-evidence projection as the established lever; narrow guidance before production rollout. |
 | 2026-09-03 | `firsthop-ab-100` | stopping | **diagnostic** | Forced 3-search first hop 41–24–35 vs free first turn; 40% swap flips, no shipped change. |
+| 2026-09-03 | `model-eval-200` | model_selection | **diagnostic** | GLM 117–53–30 vs Gemini on filtered-200; 47.5% swap flips. Keep Gemini. Luna loses. DeepSeek 66–106–28 after resume to 151/200. |
 
 ## Scope rules
 

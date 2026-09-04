@@ -1,10 +1,25 @@
-This is the Crunch design-decision record (also at [`docs/DECISIONS.md`](docs/DECISIONS.md)).
+Crunch design-decision record. `[docs/DECISIONS.md](docs/DECISIONS.md)` points here; the exhaustive history is `[docs/DECISIONS-ARCHIVE.md](docs/DECISIONS-ARCHIVE.md)`.
 
-# Crunch runtime design
+# Why Crunch does what it does
 
 Crunch turns a question into a grounded, typed API response by running one fast reasoning model inside a small, controlled search loop.
 
-`question → one fast reasoning model → search/fetch loop → answer → coverage/citation cleanup → API output`
+`question → forced first hop → one fast reasoning model → search/fetch loop → answer → coverage/citation cleanup → API output`
+
+Naming: **Deep V1** is the current production Deep (LanggraphDeep + DistilLabs formatter). **Deep V2** is Crunch. This doc says Crunch and Deep V1. Evidence IDs (e.g. `scrape-top-100`) resolve to `[docs/benchmarks/](docs/benchmarks/)` and `[benchmarks.json](benchmarks.json)`. “Adopted” means supported for the stated scope, not universally optimal.
+
+## Contents
+
+1. [Overall design](#overall-design)
+2. [What the harness owns / what retrieval owns](#what-the-harness-owns)
+3. [Design choices shaped by evaluation](#design-choices-shaped-by-evaluation), in loop order
+  - Model: [1. Gemini 3.7 Flash](#1-one-fast-reasoning-model-gemini-37-flash)
+  - Gather: [2. Force the first hop](#2-force-the-first-hop) · [3. Stop adaptively](#3-stop-adaptively) · [4. Snippets first](#4-use-snippets-first) · [5. Ten results per search](#5-return-ten-results-per-search) · [6. Host allowlist for fetch](#6-host-allowlist-for-fetch) · [7. Guess-and-verify on chains](#7-guess-and-verify-on-chains)
+  - Write: [8. v7 answer contract](#8-use-the-v7-answer-contract) · [9. Coverage pass](#9-run-a-coverage-pass) · [10. Repair citations](#10-repair-and-renumber-citations)
+  - `searchResults`: [11. Model-rank](#11-model-rank-searchresults)
+  - Contract: [12. Own the agent loop](#12-own-the-agent-loop)
+4. [Tried and rejected](#tried-and-rejected)
+5. [Known limits](#known-limits)
 
 ## Overall design
 
@@ -36,80 +51,104 @@ Retrieval supplies evidence; it does not decide when the whole task is complete 
 
 ## Design choices shaped by evaluation
 
-### 1. Stop adaptively
+Each entry: what Crunch does, the eval, the number, the decision. Ordered by where it sits in the loop.
 
-- The model can stop after enough evidence or continue with another search or fetch.
-- Forced one-hop scored 62.5% and forced two-hop scored 65.0%, each on n=40 against Deep ([`forced-gather-hops-40`](docs/benchmarks/forced-gather-hops-40.md)).
-- The roughly 76% figure comes from the separate n=200 split-finish `searchResults` arm against Deep ([`search-split-finish-200`](docs/benchmarks/search-split-finish-200.md)), not a directly paired three-arm test. We therefore avoid fixed hop counts.
+### 1. One fast reasoning model: Gemini 3.7 Flash
 
-### 2. Use snippets first
+- The same model plans, searches, reads, stops, and writes. Planning, evidence, and uncertainty stay in one context.
+- Model choice, n=25, same questions, shipped config: Flash checklist pass 0.879, Luna 0.873, Qwen 0.768, Gemini Flash Lite 0.692. Flash p50 9.4s, $14.71 per 1,000. No arm was cheaper, faster, and better (`[model-hunt-25](docs/benchmarks/model-hunt-25.md)`, supersedes `[model-bakeoff-20](docs/benchmarks/model-bakeoff-20.md)`).
+- Separate writer, n=24 hard questions: Gemini Pro as writer scored 0.750 vs 0.746 for the loop model writing its own answer, at 4.8× model cost (`[synthesis-writers-24](docs/benchmarks/synthesis-writers-24.md)`).
+- Decision: Flash, one model for loop and writing. Luna is the latency-relaxed runner-up.
 
-- Search returns snippets first; the model fetches full pages only when needed.
-- On n=100, automatic scraping scored 0.930 at 30.5s p50. No automatic scraping scored 0.940 at 9.5s ([`scrape-top-100`](docs/benchmarks/scrape-top-100.md)).
-- Scraping added large latency without quality gain, so automatic top-page scraping was disabled.
+### 2. Force the first hop
 
-### 3. Return ten results per search
+- Turn 1: `tool_choice=required`, at least 3 distinct parallel searches, no answer on that turn. Never answer from memory.
+- Shipped (`min_first_searches=3`) vs free (`min_first=0`, answer allowed on turn 1), n=100 production `sourcedAnswer`, blind pairwise, 40 swaps: **41–24–35** (63.1% decided), but **16/40 swap flips (40%)**, so the margin does not beat order instability. Latency ~10.5s vs ~10.6s. Free averaged 2.03 first-turn searches with 61 rows below 3; shipped 3.31, never below 3 (`[firsthop-ab-100](docs/benchmarks/firsthop-ab-100.md)`).
+- Decision: the rule is shipped; the eval was diagnostic. 3 stays because the lean is in the right direction at no latency cost. The swap rate blocks calling 3 “optimal.”
+- A single literal query (no rewrite, one hop) scored 34.4% vs Deep V1 on n=40 (`[search-literal-40](docs/benchmarks/search-literal-40.md)`). The first hop needs multiple rewritten queries.
 
-- Each search returns at most ten results, reducing model context and retrieval cost.
-- On n=25, ten versus twenty results changed quality by +0.015 ± 0.086 ([`toolbox-caps-25`](docs/benchmarks/toolbox-caps-25.md)).
-- The quality difference was a null, so the lower-cost, smaller-context limit stayed at ten.
+### 3. Stop adaptively
 
-### 4. Use the v7 answer contract
+- After the first hop the model decides to stop or to search/fetch again. No fixed hop count.
+- Forced 1-hop 62.5% and forced 2-hop 65.0% vs Deep V1, each n=40 (`[forced-gather-hops-40](docs/benchmarks/forced-gather-hops-40.md)`). Adaptive stopping reached ~76% vs Deep V1 on a different n=200 `searchResults` arm (`[search-split-finish-200](docs/benchmarks/search-split-finish-200.md)`).
+- Not a paired three-arm test; the direction is consistent. Decision: no forced hop counts.
 
-- The v7 answer contract tells the model to directly answer every requested part, resolve conflicting evidence, show calculations, clearly state missing information, and cite each factual claim.
-- On 24 difficult questions, missing requirements fell from 25.8% to 16.7%. The full n=100 gain was only +0.012 ± 0.041 ([`prompt-v6-v7`](docs/benchmarks/prompt-v6-v7.md)).
-- We adopted v7 for fewer omissions and its clearer mechanism, not as a large aggregate quality win.
+### 4. Use snippets first
 
-### 5. Run a coverage pass
+- Search returns snippets; the model fetches full pages only when it selects one.
+- n=100: automatic top-page scraping 0.930 at 30.5s p50; no automatic scraping 0.940 at 9.5s (`[scrape-top-100](docs/benchmarks/scrape-top-100.md)`).
+- Decision: automatic scraping off. Large latency cost, no quality gain.
 
-- After writing, the harness checks whether requested parts are missing and fills supported gaps.
-- On n=100, score rose from 0.911 to 0.930; the benefit was concentrated in agentic tasks ([`coverage-pass-100`](docs/benchmarks/coverage-pass-100.md)).
-- We kept the pass as an omission safeguard, not as a broad lookup-quality claim.
+### 5. Return ten results per search
 
-### 6. Repair and renumber citations
+- Each search returns at most ten results.
+- n=25, ten vs twenty: +0.015 ± 0.086, a null (`[toolbox-caps-25](docs/benchmarks/toolbox-caps-25.md)`).
+- Decision: ten. Same quality, smaller context, lower retrieval cost.
 
-- Deterministic cleanup maps citations to the final emitted source list and renumbers them.
-- Regrading the same stored answers raised score from 0.571 to 0.748; unsourced claims fell from 23.8% to 6.1% ([`citation-renumber-rescore`](docs/benchmarks/citation-renumber-rescore.md)).
-- Because the answers did not change, this showed a plumbing failure. Citation repair became part of finalization.
+### 6. Host allowlist for fetch
 
-### 7. Model-rank `searchResults`
+- A host must first appear in search results; any path on that host may then be fetched. Rejected: any-host, and exact-URL-only.
+- ~103 domain-scoped questions, exact-URL vs host allowlist: exact-URL refused 14 legitimate fetches; host allowlist allowed 15 inferred-path fetches, 14 returned text and were cited. Quality −0.010 ± 0.049, a null (`[host-fetch-guard](docs/benchmarks/host-fetch-guard.md)`).
+- Decision: host allowlist. Unblocks official-page fetches at no measured quality cost.
 
-- The model chooses across result lists from rewritten subqueries instead of comparing raw cross-query scores.
-- On the same n=364 benchmark slice, score-max reached 45.2% against Deep ([`search-max-score-364`](docs/benchmarks/search-max-score-364.md)) and model reranking reached 76.1% against Deep ([`search-model-rerank-364`](docs/benchmarks/search-model-rerank-364.md)).
-- These are separate comparisons to Deep, not necessarily a direct reranker-versus-score judge. The score-scale failure still justified model ranking.
+### 7. Guess-and-verify on chains
 
-### 8. End `searchResults` with `done`
+- On multi-hop questions the model guesses the intermediate entity and fires a verifying search in the same turn, instead of strictly hop-by-hop.
+- 10 chain questions, stock prompt vs added “do this in order” instruction: both 10/10, 0–0–10, ~2.2 hops each (`[chain-prompt-10](docs/benchmarks/chain-prompt-10.md)`).
+- Decision: keep stock behavior. Small n; entities were likely known from pretraining.
 
-- Once ranking is complete, the model calls `done` instead of writing prose that the API discards.
-- On n=200, quality was unchanged by the paired sign test (p=0.67), while latency fell from 44.1s to 8.4s ([`search-split-finish-200`](docs/benchmarks/search-split-finish-200.md)).
-- The large latency gain with no measured quality loss made `done` the finish contract.
+### 8. Use the v7 answer contract
 
-### 9. Keep filters outside the model
+- The model must answer every requested part, resolve conflicting evidence, show calculations, state what is missing, and cite each factual claim.
+- 24 hard questions: missing requirements 25.8% → 16.7%. Full n=100 aggregate: +0.012 ± 0.041, a null (`[prompt-v6-v7](docs/benchmarks/prompt-v6-v7.md)`).
+- Decision: adopted on mechanism (fewer omissions), not on aggregate score.
 
-- The harness applies caller domain and date filters as immutable constraints outside model-written queries.
-- On n=200 filtered requests, Crunch returned 0 domain-violating URLs versus 33 for Deep ([`filtered-production-200`](docs/benchmarks/filtered-production-200.md)).
-- Crunch `searchResults` recall and reliability were worse, so the filter design stayed but the release was not approved.
+### 9. Run a coverage pass
 
-### 10. Own the agent loop
+- After writing, the harness checks for missing requested parts and fills gaps that the gathered evidence supports.
+- n=100: 0.911 → 0.930, concentrated in agentic tasks (`[coverage-pass-100](docs/benchmarks/coverage-pass-100.md)`).
+- Decision: keep as an omission safeguard. Not a lookup-quality claim.
 
-- The harness controls model turns, tool calls, budgets, failures, and stopping.
-- On production `sourcedAnswer` traffic, n=687 produced 578 Crunch wins, 108 losses, and 1 tie against frozen Deep ([`production-2000-sourced`](docs/benchmarks/production-2000.md)).
-- This supports the whole Crunch system, but does not isolate loop ownership.
+### 10. Repair and renumber citations
 
-## Remaining principles
+- Deterministic cleanup maps every citation to the final emitted source list and renumbers.
+- Regrading the same stored answers: 0.571 → 0.748; unsourced claims 23.8% → 6.1% (`[citation-renumber-rescore](docs/benchmarks/citation-renumber-rescore.md)`).
+- The answers did not change, so this was a plumbing failure. Decision: citation repair is part of finalization.
 
-These are not restated in the evaluation-backed choices above.
+### 11. Model-rank `searchResults`
 
-- **One fast reasoning model.** The same model gathers evidence and writes the answer, keeping the question, queries, evidence, and uncertainty in one context. A separate Pro writer scored 0.750 versus 0.746 for the loop writer at 4.8× model cost ([`synthesis-writers-24`](docs/benchmarks/synthesis-writers-24.md)).
-- **Row-level failures.** One bad row must not stop a campaign; rows are isolated and resumable.
-- **Blind paired judging.** Compare typed outputs with swaps and ties; a margin smaller than order instability is a tie.
-- **Force grounding first.** First turn: `tool_choice=required`, at least 3 distinct parallel searches, no final answer on that turn.
-  - Eval: n=100 production `sourcedAnswer`, same IDs, Gemini 3.7 Flash, Claude Sonnet 4.5 blind pairwise, 40 swaps. Shipped (`min_first_searches=3`, first-turn required, no answer turn 1) vs free (`min_first=0`, auto, first-turn answer allowed): **41–24–35** (63.1% decided); **16/40 swap flips (40%)** — margin does not beat order instability. Median latency ~10.5s vs ~10.6s. Free never answered on turn 1 (never-answer-from-memory stayed on); first-turn searches 2.03, 61 rows <3. Shipped 3.31, never <3 ([`firsthop-ab-100`](docs/benchmarks/firsthop-ab-100.md)).
-  - Decision: keep the shipped first-hop rule. Diagnostic, not a shipped-config change. 3 stays the default because the lean is the right direction and latency is not worse; the swap rate blocks locking “3 is optimal.”
-  - Later-hop stopping, not first-hop count: one literal query n=40 scored 34.4% ([`search-literal-40`](docs/benchmarks/search-literal-40.md)); forced 1-hop/2-hop gather n=40 scored 62.5%/65.0% ([`forced-gather-hops-40`](docs/benchmarks/forced-gather-hops-40.md)).
-- **Guess-and-verify on chains.** On multi-hop questions the model often guesses the intermediate entity and fires an open check in the same turn.
-  - Eval: 10 chain questions, stock prompt vs extra “do this in order” instruction, both 10/10, 0–0–10, same ~2.2 hops ([`chain-prompt-10`](docs/benchmarks/chain-prompt-10.md)).
-  - Decision: keep stock guess-and-verify; extra chain wording did not help. Small n; entities were likely known from pretraining.
-- **Host allowlist for fetch.** A host must first appear in search results; another path on that host is allowed. Reject any-host and exact-URL-only.
-  - Eval: ~103 domain-scoped questions, exact-URL vs host allowlist (rank_guard). Exact-URL refused 14 legitimate fetches. Host allowlist allowed 15 inferred-path fetches; 14 returned text and were cited. Quality −0.010 ± 0.049 (null) ([`host-fetch-guard`](docs/benchmarks/host-fetch-guard.md)).
-  - Shipped because it unblocked real official-page fetches with no measured quality cost.
+- The model ranks across result lists from its rewritten subqueries. Raw retrieval scores are not compared across queries.
+- Same n=364 slice vs Deep V1: score-max 45.2% (`[search-max-score-364](docs/benchmarks/search-max-score-364.md)`); model rerank 76.1% (`[search-model-rerank-364](docs/benchmarks/search-model-rerank-364.md)`).
+- Two separate comparisons to Deep V1, not a direct reranker-vs-score judge. Decision: model ranking; cross-query scores are not on one scale.
+
+### 12. Own the agent loop
+
+- The harness controls model turns, tool calls, budgets, failures, and stopping. The model does not decide the contract.
+- Production `sourcedAnswer`, n=687 vs frozen Deep V1: 578–108–1 (`[production-2000-sourced](docs/benchmarks/production-2000.md)`). This is the whole system, not loop ownership alone.
+- The isolation is in `[docs/EXPLORING-DEEP.md](docs/EXPLORING-DEEP.md)` §2: swapping the planner and writer inside Deep V1 did not fix one-hop stopping, generic queries, or the split answer/source assembly. The harness, not the model, set those behaviors.
+- Decision: the harness owns the loop.
+
+## Evidence
+
+
+| Tried | Result | Evidence |
+|---|---|---|
+| **Fixed hop count.** Force the loop to stop after exactly one or two search rounds, no model decision. | Forcing the loop to stop after exactly one or two search rounds scored 62.5% and 65.0% vs Deep V1 (n=40 each). Letting the model decide when to stop reached ~76% on a separate n=200 arm. Fixed hop counts under-search hard questions and over-search easy ones. | `forced-gather-hops-40`, `search-split-finish-200` |
+| **Literal query, one hop.** Send the customer's text verbatim as the only search, no rewriting, no follow-up. | Sending the customer's text as the only query, one hop, scored 34.4% vs Deep V1 (n=40). Without rewrites the loop cannot ask the sub-questions the customer implied. | `search-literal-40` |
+| **Auto-scrape top pages.** Fetch full text of the top results on every search before the model reads anything. | Fetching the top pages on every search dropped quality −0.010 (0.940 → 0.930) and added ~21s p50 (9.5s → 30.5s) on n=100. Snippets already carried the answer; full text only added context and latency. | `scrape-top-100` |
+| **Twenty results per search.** Double the per-search result cap from ten to twenty. | Doubling results per search moved quality +0.015 ± 0.086 on n=25, a null, while adding context tokens and retrieval cost. Ten was kept. | `toolbox-caps-25` |
+| **Exact-URL fetch guard.** Allow fetch only for URLs literally present in search results, not other paths on the same host. | Allowing fetch only for URLs literally returned by search refused 14 legitimate fetches (official pages reachable by an inferred path). The host allowlist let 15 such fetches through, 14 were cited, quality unchanged (−0.010 ± 0.049). | `host-fetch-guard` |
+| **Separate stronger writer.** Let Flash gather evidence, then hand it to Gemini Pro to write the final answer. | Handing the gathered evidence to a stronger writer scored 0.750 vs 0.746 for the loop model writing its own answer, at 4.8× model cost (n=24 hard questions). The loop model already had the context; a bigger writer did not. | `synthesis-writers-24` |
+| **Ordered-hops chain prompt.** Add an instruction telling the model to resolve multi-hop questions step by step. | Adding a step-by-step instruction for multi-hop questions gave 10/10 for both arms, 0–0–10 pairwise, same ~2.2 hops. The model already guesses the intermediate entity and verifies it; the instruction changed nothing. | `chain-prompt-10` |
+| **Score-max ranking for `searchResults`.** Merge result lists from rewritten subqueries and rank by highest raw retrieval score. | Ranking by the highest raw retrieval score across rewritten subqueries scored 45.2% vs Deep V1; having the model rank the merged lists scored 76.1% on the same n=364 slice. Scores from different queries are not on one scale. | `search-max-score-364`, `search-model-rerank-364` |
+| **Other loop models.** Run the shipped Crunch config on GPT-5.6 Luna, Gemini Flash Lite, Qwen, OSS-120B, and other open models. | On the same 25 questions and shipped config, Flash passed 0.879; Luna 0.873 (slower), Qwen 0.768, Flash Lite 0.692. No arm was cheaper, faster, and better at once. Qwen could not honor the required first-hop tool calls. | `model-hunt-25` |
+| **Free first hop.** Drop the ≥3-searches rule and let the model choose how many searches to run on turn 1. | Letting the model pick how many first-turn searches to run: shipped rule (≥3) led 41–24–35 on n=100, but 16/40 swaps flipped (40%), so the margin is inside judge noise. Free averaged 2.03 searches; shipped 3.31. Kept ≥3 as the safer default, not as a proven optimum. | `firsthop-ab-100` |
+
+
+## Known limits
+
+- Several adoptions rest on nulls with a stated mechanism (v7 contract, ten results, host allowlist, first-hop count). They are defensible, not proven optimal.
+- Small-n evals (`chain-prompt-10`, `model-bakeoff-20`, `toolbox-caps-25`) cannot rank close arms.
+- Live-traffic p99, Gemini rate-limit behavior under production load, and the Vertex vs direct-client path are not measured in this repo. Do not read benchmark latencies as SLOs.
+- Some Deep V1 comparisons used a frozen snapshot, others live Deep V1. Which is which is in [`docs/MEASUREMENT.md`](docs/MEASUREMENT.md).
+

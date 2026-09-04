@@ -2151,6 +2151,79 @@
         "docs/benchmarks/judge-max-tokens-180.md",
         "crunch-public:evals/sapiom-deep-100-20260902/RESULTS.md"
       ]
+    },
+    {
+      "id": "model-eval-200",
+      "title": "Five-model generation bake-off on filtered-200",
+      "type": "model_selection",
+      "status": "diagnostic",
+      "date": "2026-09-03",
+      "sample": {
+        "n": 200,
+        "source": "filtered-production-200 questions"
+      },
+      "arms": [
+        "Gemini 3.7 Flash direct 200/200",
+        "GLM-5 Flash Baseten 199/200",
+        "GPT-5.6 Luna 192/200",
+        "DeepSeek V4 Flash Baseten 151/200"
+      ],
+      "method": "Live Crunch on the pinned filtered-200 sample via local Toolbox. Blind typed Sonnet 4.5 pairwise vs Gemini, 40 swaps, no truncation, failures included.",
+      "scores": {
+        "glm_vs_gemini": {
+          "glm": 117,
+          "gemini": 53,
+          "tie": 30
+        },
+        "glm_decided": 0.688,
+        "luna_vs_gemini": {
+          "luna": 56,
+          "gemini": 123,
+          "tie": 21
+        },
+        "luna_decided": 0.313,
+        "deepseek_vs_gemini": {
+          "deepseek": 66,
+          "gemini": 106,
+          "tie": 28
+        },
+        "deepseek_decided": 0.384,
+        "glm_swap_flips": 0.475,
+        "luna_swap_flips": 0.3,
+        "deepseek_swap_flips": 0.475,
+        "generation_ok": {
+          "gemini": 200,
+          "glm": 199,
+          "luna": 192,
+          "deepseek": 151
+        },
+        "p50_s": {
+          "gemini": 9.8,
+          "glm": 26.1,
+          "luna": 78.0,
+          "deepseek": 115.5
+        },
+        "deepseek_quality_only": {
+          "n": 151,
+          "deepseek": 66,
+          "gemini": 57,
+          "tie": 28,
+          "decided": 0.537
+        }
+      },
+      "decision": "Keep Gemini 3.7 Flash as the shipped loop model. GLM won this sample but is slower and swap-unstable. Luna loses. DeepSeek loses once failures are included.",
+      "limitations": [
+        "Filtered-200 sample, not ordinary production lookups; does not replace model-hunt-25.",
+        "One GLM structured row is a grader parse-error counted as a tie.",
+        "DeepSeek 49 failures are mechanical Gemini wins; quality-only on 151 rows is 66-57-28.",
+        "DeepSeek swaps were graded on the first 97-row pass, not resampled after resume.",
+        "Structured completed 1/15 on DeepSeek."
+      ],
+      "supersedes": [],
+      "sources": [
+        "docs/benchmarks/model-eval-200.md",
+        "local:/Users/shaurya/tmp/crunch-model-eval-200-20260903"
+      ]
     }
   ]
 }
