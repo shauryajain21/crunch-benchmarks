@@ -2,6 +2,8 @@
 
 [Major decisions for Crunch](CRUNCH-HARNESS-DESIGN.md)
 
+[Exploring Deep](docs/EXPLORING-DEEP.md) — where production Deep fails customers, why the harness (not the model) is the cause, and whether the new harness holds up on Vespa alone.
+
 ## Current evidence
 
 | Scope | n | Crunch result | Comparator |
